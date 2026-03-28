@@ -16,4 +16,12 @@ structure Params (α : Type) where
   Theta_T : α  -- tearing threshold
   deriving Repr
 
+/-- Geometric Tearing functional (Vgeom). -/
+def VgeomTear [Add α] [Mul α] [HPow α Nat α] (p : Params α) (s : StateTear α) : α :=
+  p.nu1 * s.W^2 + p.nu2 * s.vW^2 + p.nu3 * s.I_cd^2
+
+/-- Disruption predicate: Tearing exceeds safe geometric threshold. -/
+def DisruptedTear [LE α] (p : Params α) (s : StateTear α) [Add α] [Mul α] [HPow α Nat α] : Prop :=
+  VgeomTear p s ≥ p.Theta_T
+
 end CohFusion.Geometry.Tearing

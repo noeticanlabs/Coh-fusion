@@ -17,4 +17,12 @@ structure Params (α : Type) where
   Theta_V    : α  -- VDE threshold
   deriving Repr
 
+/-- Geometric VDE functional (Vgeom). -/
+def VgeomVDE [Add α] [Mul α] [HPow α Nat α] (p : Params α) (s : StateVDE α) : α :=
+  p.omega1 * s.Z^2 + p.omega2 * s.vZ^2 + p.omega3 * s.I_act^2
+
+/-- Disruption predicate: VDE exceeds safe geometric threshold. -/
+def DisruptedVDE [LE α] (p : Params α) (s : StateVDE α) [Add α] [Mul α] [HPow α Nat α] : Prop :=
+  VgeomVDE p s ≥ p.Theta_V
+
 end CohFusion.Geometry.VDE
