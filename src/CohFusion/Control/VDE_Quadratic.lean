@@ -42,8 +42,10 @@ def isStabilizing
   CohFusion.Control.VDE_Abstract.ControllerDescent p dt defect s sNext u
 
 /-- Lemma: The synthesized control contracts Vgeom under gain constraints.
-    Target theorem for control synthesis. -/
-lemma synthesized_control_contracts
+    Target theorem for control synthesis.
+    NOTE: This lemma requires a formal proof of Lyapunov descent.
+    Until the proof is complete, this is marked as a theorem target. -/
+theorem synthesized_control_contracts
     (p : CohFusion.Geometry.VDE.Params α)
     (dt defect : α)
     (g : VDEControlGains α)
@@ -56,8 +58,9 @@ lemma synthesized_control_contracts
     CohFusion.Control.VDE_Abstract.ControllerDescent p dt defect s
       (CohFusion.Control.VDE_Abstract.vdeStep p s dt (synthesizeQuadratic g s) d_Z d_I)
       (synthesizeQuadratic g s) :=
-  -- Proof would proceed by expanding VgeomVDE and substituting the step
-  -- This is a placeholder - full proof needs the actual gain conditions
-  abstract sorry
+  -- PROOF PENDING: Requires formal expansion of Vgeom quadratic form
+  -- and substitution of the synthesized control law.
+  -- This theorem serves as a proof target for the control synthesis proof.
+  by sorry
 
 end CohFusion.Control.VDE_Quadratic

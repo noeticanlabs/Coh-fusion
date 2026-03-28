@@ -99,7 +99,10 @@ structure BurnChainInput where
 
 instance : CanonicalSerialize BurnChainInput where
   toCanonicalBytes bci :=
-    ByteArray.mk (bci.prevDigest.toList ++ bci.receipt.certificateId.toList ++ bci.rootOfTrust.toList).toList.map UInt8.ofNat
+    let prevBytes := bci.prevDigest.toList.map UInt8.ofNat
+    let receiptBytes := CanonicalSerialize.toCanonicalBytes bci.receipt
+    let rootBytes := bci.rootOfTrust.toList.map UInt8.ofNat
+    ByteArray.mk (prevBytes ++ receiptBytes.toList ++ rootBytes)
 
 def bindReceiptDigest [Hasher] (prevDigest : String) (receipt : BurnReceipt) (rootOfTrust : String) : String :=
   let input : BurnChainInput := { prevDigest := prevDigest, receipt := receipt, rootOfTrust := rootOfTrust }
@@ -114,18 +117,20 @@ def verifyIgnition_v3
     (state : PlasmaState)
     (dt : QFixed)
     (eta_avail : QFixed)
-    (_prev_digest : String)
+    (prev_digest : String)
     : VerifierResult :=
-  let margins := evaluateObservableMargins state
-  let E_burn := computeBurnDefect cert state margins
+  let params := defaultBurnPolicyParams
+  let margins := evaluateObservableMargins params state
+  let (E_model, E_act, E_sensor) := computeBurnDefect params cert state margins
+  let E_burn := E_model + E_act + E_sensor
   let authority := eta_avail * dt
   let spend := authority
 
   if ¬(checkAffordability E_burn authority) then
     VerifierResult.reject_unaffordable_burn s!"REJECT_UNAFFORDABLE_BURN"
   else
-    let receipt := buildBurnReceipt state margins E_burn (cert.latency * MOCK_SENSOR_SCALE) dt eta_avail spend cert.certificate_id
-    let digest := bindReceiptDigest receipt
+    let receipt := buildBurnReceipt state margins E_model E_act E_sensor dt eta_avail spend cert.certificateId
+    let digest := bindReceiptDigest prev_digest receipt cert.root_of_trust
     VerifierResult.accept receipt digest
 
 end CohFusion.Control.BurnPolicyDemo

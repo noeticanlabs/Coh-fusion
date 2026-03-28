@@ -4,18 +4,28 @@ import CohFusion.Numeric.QFixed
 namespace CohFusion.Numeric
 
 /-- Canonical decimal string representation of QFixed.
-    Produces a string like "1.5" or "-2.75" with proper sign handling. -/
+    Uses fixed-width 16-digit fractional part with left-padding, then trims trailing zeros.
+    Produces strings like "1.5", "-2.75", "100" (no trailing .0). -/
 def toCanonicalDecimal (q : QFixed) : String :=
   let raw := q.raw
   let sign := if raw < 0 then "-" else ""
   let absRaw := Int.natAbs raw
   let intPart := absRaw / scale
-  let fracPart := absRaw % scale
-  let fracStr := (fracPart / (scale / 1000000000000000)).toNat.repr
-  if fracPart = 0 then
+  let fracRaw := absRaw % scale
+
+  -- Fixed 16-digit fractional width
+  let fracStr := fracRaw.repr
+  let paddedFrac := String.mk (List.replicate (16 - fracStr.length) '0' |>.append fracStr.toList)
+
+  -- Trim trailing zeros
+  let trimmedFrac := paddedFrac.reverse.dropWhile (fun c => c = '0').reverse
+
+  if fracRaw = 0 then
+    sign ++ intPart.toNat.repr
+  else if trimmedFrac.isEmpty then
     sign ++ intPart.toNat.repr
   else
-    sign ++ intPart.toNat.repr ++ "." ++ fracStr
+    sign ++ intPart.toNat.repr ++ "." ++ trimmedFrac
 
 /--
   Strict fixed-point serialization.

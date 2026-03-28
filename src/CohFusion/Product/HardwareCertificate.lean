@@ -39,13 +39,24 @@ structure ValidatedCertificate where
 def isExpired (cert : HardwareCertificate) (today : String) : Bool :=
   today > cert.expiry
 
-/-- Check if certificate has required signature shape (non-empty). -/
+/-- Check if certificate has required signature shape (non-empty).
+    NOTE: This is a basic structural check. Production should verify
+    cryptographic signature validity against root_of_trust. -/
 def hasRequiredSignatureShape (cert : HardwareCertificate) : Bool :=
   cert.signature.length > 0
 
-/-- Check if certificate regime matches expected hash. -/
-def matchesRegime (cert : HardwareCertificate) (expectedHash : String) : Bool :=
-  cert.operating_regime_hash = expectedHash
+/-- Check if certificate has a valid signature format.
+    In production, this should perform cryptographic verification. -/
+def hasValidSignatureFormat (cert : HardwareCertificate) : Bool :=
+  -- Basic format check: signature should be hex-encoded and of proper length
+  let sig := cert.signature
+  sig.length >= 64 -- SHA-256 produces 64 hex chars
+  /\
+  (sig.toList.all (fun c => c.isDigit ∨ ("abcdef".contains c) ∨ ("ABCDEF".contains c)))
+
+/-- Check if certificate root of trust is defined. -/
+def hasRootOfTrust (cert : HardwareCertificate) : Bool :=
+  cert.root_of_trust.length > 0
 
 /-- Validate certificate and return either an error or validated certificate. -/
 def validateCertificate
@@ -56,6 +67,10 @@ def validateCertificate
     Except.error s!"Certificate {cert.certificate_id} is expired as of {today}"
   else if ¬hasRequiredSignatureShape cert then
     Except.error s!"Certificate {cert.certificate_id} missing required signature"
+  else if ¬hasValidSignatureFormat cert then
+    Except.error s!"Certificate {cert.certificate_id} has invalid signature format"
+  else if ¬hasRootOfTrust cert then
+    Except.error s!"Certificate {cert.certificate_id} missing root of trust"
   else if ¬matchesRegime cert expectedRegimeHash then
     Except.error s!"Certificate {cert.certificate_id} regime mismatch: expected {expectedRegimeHash}, got {cert.operating_regime_hash}"
   else

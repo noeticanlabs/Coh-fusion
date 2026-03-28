@@ -53,7 +53,8 @@ def main (args : List String) : IO Unit := do
     IO.println "=== Coh-Fusion Integrated Operational Spine (v3 Pipeline) ==="
     IO.println s!"Auditing Cert ID: {cert.certificate_id}"
 
-    match verifyIgnition_v3 cert plasmaState (QFixed.one) (QFixed.fromFloat 50.0) prev_digest with
+    let etaAvail := QFixed.fromDecimalString "50.0" |> Except.toOption |> Option.get!
+    match verifyIgnition_v3 cert plasmaState QFixed.one etaAvail prev_digest with
     | VerifierResult.reject_unaffordable_burn reason =>
         IO.println s!"VERIFIER_RESULT: REJECT\nReason: {reason}"
     | VerifierResult.reject_invalid_envelope reason =>

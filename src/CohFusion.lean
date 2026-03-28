@@ -14,7 +14,7 @@ import CohFusion.Numeric.Serialize
 import CohFusion.Numeric.BoundsAxioms
 
 import CohFusion.Crypto.Digest
-import CohFusion.Crypto.DigestStub
+-- import CohFusion.Crypto.DigestStub  -- REMOVED: Stub leaks into production; keep isolated for dev only
 import CohFusion.Crypto.Serialize
 import CohFusion.Crypto.Ledger
 
