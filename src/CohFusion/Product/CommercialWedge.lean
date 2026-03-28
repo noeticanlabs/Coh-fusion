@@ -5,19 +5,21 @@ import CohFusion.Geometry.Composition
 import CohFusion.Product.HardwareCertificate
 import CohFusion.Numeric.QFixed
 import CohFusion.Numeric.Serialize
+import CohFusion.Runtime.VerifierSemantics
 
 namespace CohFusion.Product.CommercialWedge
 
 open CohFusion.Core
 open CohFusion.Geometry
 open CohFusion.Numeric
+open CohFusion.Runtime
 
 /--
   Deployment modes for the commercial wedge.
   - replay: offline verification of historical traces
   - shadow: online monitoring without control intervention
   - advisory: online monitoring with operator alerts
-  - hard_gate: online verification with automated shutdown authority
+  - hard_gate: automated rejection authority
 -/
 inductive DeploymentMode
   | replay
@@ -26,7 +28,7 @@ inductive DeploymentMode
   | hard_gate
   deriving Repr, DecidableEq
 
-/-- Public Decision outcome for the commercial wedge. -/
+/-- Public decision outcome for the commercial wedge. -/
 inductive WedgeDecision
   | allow
   | warn (msg : String)
@@ -46,6 +48,13 @@ structure CommercialWedge where
   -- Public Envelope Constraints
   threshold     : QFixed
   defect_limit  : QFixed
+
+  /--
+    Gamma oplax: spend discount / safety discount factor.
+    - gamma = 0 recovers full spend (plain oplax law)
+    - gamma > 0 means runtime conservatively discounts claimed authority
+    This is a commercial feature: trusted authority retention factor.
+  -/
   gamma_oplax   : QFixed
 
   -- Operating Regime
@@ -106,10 +115,55 @@ def evaluateRisk (wedge : CommercialWedge) (state : State6 QFixed) : QFixed :=
   VgeomFus wedge.risk_params (CohFusion.Geometry.toStateFus state)
 
 /--
-  Affordability Law (FUS-1): Authority vs Burn Defect.
-  Computes if the available control authority can dominate the certified defect.
+  Affordability Gate: Strict dominance of authority over defect.
+  Lawful operation requires certified authority to strictly dominate priced defect.
 -/
-def isAffordable (_wedge : CommercialWedge) (defect : QFixed) (authority : QFixed) : Bool :=
-  defect ≤ authority
+def isAffordable (_wedge : CommercialWedge) (defect authority : QFixed) : Bool :=
+  defect < authority
+
+/--
+  End-to-end product runtime path:
+  construct a micro-receipt, call the deterministic verifier, and map to wedge decision.
+
+  NOTE: This is the orchestration entry point. The actual verifyRV call requires
+  typeclass instances (LE, LT, Add, Sub, Mul, HPow, OfNat) for QFixed, which are
+  available. Full integration with Runtime.VerifierSemantics.verifyRV will be
+  completed in the next phase after typeclass infrastructure stabilizes.
+
+  For now, this returns a basic allow decision that maps to the wedge's mode.
+-/
+def evaluateTransition
+    (wedge : CommercialWedge)
+    (expectedState nextState : ObservableChannels)
+    (spend defect : QFixed) : WedgeDecision :=
+  -- Orchestration: ingest observables -> build state -> evaluate risk -> evaluate affordability
+  let state6 := toState6 nextState
+  let risk := evaluateRisk wedge state6
+
+  -- Affordability check (simplified for now)
+  let affordable := isAffordable wedge defect spend
+
+  -- Map to decision based on mode
+  match wedge.mode with
+  | DeploymentMode.replay =>
+    if risk ≤ wedge.threshold && affordable then
+      WedgeDecision.allow
+    else
+      WedgeDecision.reject RejectCode.thresholdExceeded "REPLAY_FAILURE"
+  | DeploymentMode.shadow =>
+    if risk ≤ wedge.threshold && affordable then
+      WedgeDecision.allow
+    else
+      WedgeDecision.warn "SHADOW_VIOLATION"
+  | DeploymentMode.advisory =>
+    if risk ≤ wedge.threshold && affordable then
+      WedgeDecision.allow
+    else
+      WedgeDecision.warn "ADVISORY_ALERT"
+  | DeploymentMode.hard_gate =>
+    if risk ≤ wedge.threshold && affordable then
+      WedgeDecision.allow
+    else
+      WedgeDecision.reject RejectCode.thresholdExceeded "HARD_GATE_TRIP"
 
 end CohFusion.Product.CommercialWedge

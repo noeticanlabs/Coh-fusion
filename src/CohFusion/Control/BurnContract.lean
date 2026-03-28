@@ -1,4 +1,3 @@
-import Lean.Data.Json
 import CohFusion.Numeric.QFixed
 import CohFusion.Numeric.Serialize
 import CohFusion.Product.HardwareCertificate
@@ -23,6 +22,26 @@ structure PlasmaState where
 structure ObservableMargins where
   m_vde  : QFixed
   m_tear : QFixed
+  deriving Repr, Inhabited
+
+/--
+Burn receipt payload.
+This is the burn-facing contract object, not the top-level product decision type.
+-/
+structure BurnReceipt where
+  dt            : QFixed
+  etaAvailable  : QFixed
+  spend         : QFixed
+  eModel        : QFixed
+  eAct          : QFixed
+  eSensor       : QFixed
+  margins       : ObservableMargins
+  certificateId : String
+  deriving Repr, Inhabited
+
+/-- Total burn defect Δ_burn = E_model + E_act + E_sensor. -/
+def totalBurnDefect (r : BurnReceipt) : QFixed :=
+  r.eModel + r.eAct + r.eSensor
 
 /-- Detailed result for the FUS-1 verifier. -/
 inductive VerifierResult

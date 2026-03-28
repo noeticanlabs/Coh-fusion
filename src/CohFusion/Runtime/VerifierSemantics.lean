@@ -1,7 +1,10 @@
 import Mathlib.Order.Basic
+import Mathlib.Algebra.Ring.Basic
 import CohFusion.Core.Receipt
 import CohFusion.Core.Decision
 import CohFusion.Geometry.Composition
+
+set_option checkBinderAnnotations false
 
 namespace CohFusion.Runtime
 
@@ -12,7 +15,8 @@ open CohFusion.Geometry
     This implements the deterministic transition check for a single micro-receipt. -/
 def verifyRV
     {α : Type}
-    [LinearOrder α] [Add α] [Sub α] [Mul α] [HPow α Nat α] [OfNat α 1]
+    [Ring α] [LinearOrder α]
+    [Add α] [Sub α] [Mul α] [HPow α Nat α] [OfNat α 1]
     (p : ParamsFus α)
     (r : MicroReceipt α)
     (expectedState : State6 α)

@@ -1,3 +1,4 @@
+import Mathlib.Order.Basic
 import CohFusion.Numeric.Policy
 
 set_option linter.unusedVariables false
@@ -64,6 +65,14 @@ instance : DecidableRel (LT.lt : QFixed → QFixed → Prop) :=
 
 instance : DecidableRel (LE.le : QFixed → QFixed → Prop) :=
   λ a b => (inferInstance : Decidable (a.raw ≤ b.raw))
+
+-- Manual decidability for greater-than: a > b ≡ b < a
+instance (a b : QFixed) : Decidable (a > b) :=
+  inferInstanceAs (Decidable (b < a))
+
+-- Derive DecidableEq from the structure's raw field equality
+-- Uses the derived DecidableEq on the structure itself
+instance : DecidableEq QFixed := inferInstance
 
 /-- Convert to Float (for logging/display only, not for core logic). -/
 def toFloat (q : QFixed) : Float :=

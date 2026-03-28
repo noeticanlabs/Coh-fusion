@@ -27,9 +27,13 @@ structure ParamsFus (α : Type) where
 def VgeomFus [Add α] [Mul α] [HPow α Nat α] (p : ParamsFus α) (s : StateFus α) : α :=
   VDE.VgeomVDE p.vde s.vde + Tearing.VgeomTear p.tear s.tear
 
-/-- Joint disruption predicate: Disjunction of physical disruptions.
-    Aligns with Chapter 5 logic where disruption is a physical event in either component. -/
-def DisruptedFus [LE α] [Neg α] [Max α] (p : ParamsFus α) (s : StateFus α) : Prop :=
+/--
+  Joint disruption predicate: Disjunction of physical disruptions.
+  Aligns with Chapter 5 logic where disruption is a physical event in either component.
+
+  Uses squared form from core geometry to avoid sign/abs issues in theorem layer.
+-/
+def DisruptedFus {α : Type} [Add α] [Sub α] [Mul α] [HPow α Nat α] [LE α] (p : ParamsFus α) (s : StateFus α) : Prop :=
   VDE.DisruptedVDE p.vde s.vde ∨ Tearing.DisruptedTear p.tear s.tear
 
 end CohFusion.Geometry

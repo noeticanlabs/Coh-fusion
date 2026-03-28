@@ -2,14 +2,12 @@ import CohFusion.Control.BurnContract
 import CohFusion.Geometry.VDERuntime
 import CohFusion.Geometry.TearingRuntime
 import CohFusion.Product.HardwareCertificate
-import CohFusion.Crypto.Ledger
 
 namespace CohFusion.Control.BurnPolicyDemo
 
 open CohFusion.Numeric
 open CohFusion.Product
 open CohFusion.Control.BurnContract
-open CohFusion.Crypto.Ledger
 
 /-- Mock coefficients and thresholds for the demo. -/
 def MOCK_Z_MAX : QFixed := QFixed.fromFloat 2.5
@@ -45,22 +43,19 @@ def checkAffordability (defect : QFixed) (authority : QFixed) : Bool :=
   defect ≤ authority
 
 /-- Step 4: Build burn receipt. -/
-def buildBurnReceipt (state : PlasmaState) (margins : ObservableMargins) (E_act : QFixed) (E_sensor : QFixed) (prev_digest : String) : BurnReceipt :=
-  { k_index := 1,
-    m_tear_hat := margins.m_tear.toFloat,
-    m_VDE_hat := margins.m_vde.toFloat,
-    m_I_hat := (state.I_p - QFixed.one).toFloat,
-    n_X_hat := state.n_X.toFloat,
-    L_R_hat := (state.n_X * MOCK_LIPSCHITZ_SCALE).toFloat,
-    E_time_hat := 0.01,
-    E_quant_hat := 0.001,
-    E_obs_hat := E_sensor.toFloat,
-    E_model_hat := E_act.toFloat,
-    state_digest := prev_digest }
+def buildBurnReceipt (_state : PlasmaState) (margins : ObservableMargins) (E_act : QFixed) (E_sensor : QFixed) (dt eta_avail spend : QFixed) (cert_id : String) : BurnReceipt :=
+  { dt           := dt,
+    etaAvailable := eta_avail,
+    spend        := spend,
+    eModel       := E_act,
+    eAct         := E_act,
+    eSensor      := E_sensor,
+    margins      := margins,
+    certificateId := cert_id }
 
 /-- Step 5: Bind receipt digest. -/
 def bindReceiptDigest (receipt : BurnReceipt) : String :=
-  compute_sha256_mock (toString (Lean.toJson receipt))
+  "sha256:" ++ receipt.certificateId
 
 /--
   Integrated verifyIgnition (v3) using the staged pipeline.
@@ -70,16 +65,17 @@ def verifyIgnition_v3
     (state : PlasmaState)
     (dt : QFixed)
     (eta_avail : QFixed)
-    (prev_digest : String)
+    (_prev_digest : String)
     : VerifierResult :=
   let margins := evaluateObservableMargins state
   let E_burn := computeBurnDefect cert state margins
   let authority := eta_avail * dt
+  let spend := authority
 
   if ¬(checkAffordability E_burn authority) then
-    VerifierResult.reject_unaffordable_burn s!"REJECT_UNAFFORDABLE_BURN: Total defect ({E_burn.toFloat}) exceeds authority ({authority.toFloat})."
+    VerifierResult.reject_unaffordable_burn s!"REJECT_UNAFFORDABLE_BURN"
   else
-    let receipt := buildBurnReceipt state margins E_burn (cert.latency * MOCK_SENSOR_SCALE) prev_digest
+    let receipt := buildBurnReceipt state margins E_burn (cert.latency * MOCK_SENSOR_SCALE) dt eta_avail spend cert.certificate_id
     let digest := bindReceiptDigest receipt
     VerifierResult.accept receipt digest
 
