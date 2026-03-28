@@ -8,11 +8,6 @@ namespace CohFusion.Runtime
 open CohFusion.Core
 open CohFusion.Geometry
 
-/-- Mapping from flat State6 to Geometry.StateFus -/
-def toStateFus {α : Type} (s : State6 α) : StateFus α :=
-  { vde  := { Z := s.Z, vZ := s.vZ, I_act := s.I_act }
-    tear := { W := s.W, vW := s.vW, I_cd := s.I_cd } }
-
 /-- RV (Runtime Verifier) Kernel for Coh-Fusion.
     This implements the deterministic transition check for a single micro-receipt. -/
 def verifyRV
@@ -31,7 +26,7 @@ def verifyRV
 
   -- 2. Threshold Gate: Ensure next state is within the public safety envelope.
   else if VgeomFus p (toStateFus r.stateNext) ≥ threshold then
-    Decision.reject RejectCode.defectOutOfBounds
+    Decision.reject RejectCode.thresholdExceeded
 
   -- 3. Defect Gate: Ensure declared defect is within bounds.
   else if r.defectDeclared ≥ defectLimit then
@@ -41,7 +36,7 @@ def verifyRV
   -- Logic: V(s') ≤ V(s) - (1-γ) * spend + defect
   else if VgeomFus p (toStateFus r.stateNext) >
           VgeomFus p (toStateFus r.statePrev) - ((1 : α) - gamma) * r.spendAuth + r.defectDeclared then
-    Decision.reject RejectCode.defectOutOfBounds
+    Decision.reject RejectCode.oplaxViolation
 
   else
     Decision.accept

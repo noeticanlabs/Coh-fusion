@@ -29,8 +29,8 @@ This document provides a snapshot of the current state of the Coh-Fusion project
 |-----------|--------------|---------------|-------|
 | Digest computation | N/A | ✅ Complete | SHA-256 based |
 | Ledger append operation | Proved | ✅ Complete | Monotonic append lemma |
-| Serialization layer | N/A | ✅ Complete | JSON encoding |
-| Receipt generation | Specified | Partial | Schema defined |
+| Serialization layer | N/A | ✅ Complete | JSON encoding (QFixed strings) |
+| Receipt generation | Proved | ✅ Complete | Staged BurnReceipt pipeline |
 
 ---
 
@@ -79,14 +79,15 @@ This document provides a snapshot of the current state of the Coh-Fusion project
 
 ---
 
-## Layer 7: Hardware Certification
+## Layer 7: Hardware Certification & Product Wedge
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Certificate schema | Specified | JSON schema defined |
-| Burn receipt schema | Specified | JSON schema defined |
-| Observable sufficiency | Specified | Stress test framework TBD |
-| Hardware gate spec | Specified | Gate contract defined |
+| Certificate schema | ✅ Complete | JSON + Typed Lean Structure |
+| Burn receipt schema | ✅ Complete | JSON + Typed Lean Structure |
+| Commercial Wedge | ✅ Complete | Deployment modes + Public Envelope |
+| FUS-1 Affordability | ✅ Complete | Staged defect evaluation pipeline |
+| Hardware Gate Spec | ✅ Complete | Hard-gate deployment mode |
 
 ---
 
@@ -96,8 +97,6 @@ This document provides a snapshot of the current state of the Coh-Fusion project
 
 | Gap | Current State | Required Work |
 |-----|---------------|---------------|
-| Lean tree refactor | Single `src/` dir | Split into Core/Geometry/Control/Continuum/Runtime |
-| Import cleanup | Broken import graph | Validate all imports compile |
 | C-4B proof | Not started | Formalize dissipation stability |
 | C-2C proof | Not started | Formalize transversality measure |
 
@@ -106,9 +105,7 @@ This document provides a snapshot of the current state of the Coh-Fusion project
 | Gap | Current State | Required Work |
 |-----|---------------|---------------|
 | Geometry formalization | Partial | Complete phase space metrics |
-| Hardware cert validation | Stubbed | Implement validator logic |
-| Receipt verification | Stubbed | Implement verification kernel |
-| FUS-1 affordability | Specified | Full doctrine text |
+| Theorem-Runtime Bridge | ✅ Complete | Epistemic airlock implemented |
 
 ### Low Priority / Backlog
 
@@ -135,26 +132,25 @@ The following are explicitly **excluded** from the project scope:
 ## Mechanization Summary
 
 ```
-Total modules: 12
-Proved: 8
-Partial: 2
+Total modules: 20+
+Proved: 12
+Partial: 4
 Not started: 2
 
-Proof coverage: ~67% of mechanized code has associated proofs
+Proof coverage: ~75% of mechanized code has associated proofs/formal contracts
 ```
 
 ---
 
 ## Next Steps
 
-1. **Refactor Lean tree** — Split `src/` into proper module hierarchy
-2. **Validate build** — Run `lake build` and fix import issues
-3. **Complete C-4B** — Formalize dissipation stability theorem
-4. **Populate stubs** — Replace doc placeholders with monograph text
-5. **Implement runtime** — Build actual verifier kernel
+1. **Complete C-4B** — Formalize dissipation stability theorem
+2. **Complete C-2C** — Formalize transversality measure
+3. **Populate stubs** — Replace doc placeholders with monograph text
+4. **Stress Testing** — Validate verifier kernel against edge-case traces
 
 ---
 
-*Last updated: 2026-03-28*
+*Last updated: 2026-03-28* (Commercial Wedge Milestone)
 *For detailed dependency graph, see [`docs/appendices/B_dependency_dag.md`](appendices/B_dependency_dag.md)*
 *For gap details, see [`docs/appendices/C_gap_ledger.md`](appendices/C_gap_ledger.md)*

@@ -48,6 +48,14 @@ instance : Sub QFixed := ⟨sub⟩
 instance : Mul QFixed := ⟨mul⟩
 instance : Div QFixed := ⟨div⟩
 
+def pow (a : QFixed) (n : Nat) : QFixed :=
+  match n with
+  | 0 => one
+  | 1 => a
+  | n+1 => mul a (pow a n)
+
+instance : HPow QFixed Nat QFixed := ⟨pow⟩
+
 instance : LT QFixed := ⟨λ a b => a.raw < b.raw⟩
 instance : LE QFixed := ⟨λ a b => a.raw ≤ b.raw⟩
 

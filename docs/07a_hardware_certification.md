@@ -8,36 +8,17 @@ The hardware certification layer establishes the contract between the formal con
 
 ### Hardware Certificate
 
-A hardware certificate attests that a given control action has been executed on verified hardware:
+A hardware certificate attests that a given control action has been executed on verified hardware. It is now represented as a typed object in Lean:
 
-```json
-{
-  "certificate_id": "cert_XXXX",
-  "hardware_id": "hw_YYYY",
-  "control_action": "R₄ morphism data",
-  "timestamp": "ISO-8601",
-  "signature": "hardware_root_of_trust_sig"
-}
-```
-
-See [`src/schema/hardware_certificate_schema.json`](src/schema/hardware_certificate_schema.json) for full JSON schema.
+- **Lean Definition**: [`src/CohFusion/Product/HardwareCertificate.lean`](../src/CohFusion/Product/HardwareCertificate.lean)
+- **Schema**: [`src/schema/hardware_certificate_schema.json`](../src/schema/hardware_certificate_schema.json)
 
 ### Burn Receipt
 
-A burn receipt records the consumption of resources (fuel, power, time) during control execution:
+A burn receipt records the consumption of resources and evaluated margins. It is generated through a staged pipeline in the FUS-1 verifier.
 
-```json
-{
-  "receipt_id": "burn_XXXX",
-  "certificate_ref": "cert_YYYY",
-  "fuel_consumed_MJ": 123.45,
-  "power_peak_MW": 5.67,
-  "duration_ms": 890,
-  "integrity_hash": "sha256..."
-}
-```
-
-See [`src/schema/burn_receipt_schema.json`](src/schema/burn_receipt_schema.json) for full JSON schema.
+- **Lean Definition**: [`src/CohFusion/Control/BurnContract.lean`](../src/CohFusion/Control/BurnContract.lean)
+- **Pipeline Implementation**: [`src/CohFusion/Control/BurnPolicyDemo.lean`](../src/CohFusion/Control/BurnPolicyDemo.lean)
 
 ## Certification Flow
 
@@ -60,10 +41,10 @@ The hardware gate contract defines:
 
 | Component | Status |
 |-----------|--------|
-| Certificate schema | ✅ Defined |
-| Burn receipt schema | ✅ Defined |
-| Gate contract | ✅ Specified |
-| Validation logic | Stubbed |
+| Certificate schema | ✅ Complete (Typed Lean Object) |
+| Burn receipt schema | ✅ Complete (Staged Pipeline) |
+| Gate contract | ✅ Complete (Commercial Wedge Hard-Gate) |
+| Validation logic | ✅ Integrated (verifyIgnition_v3) |
 
 ## References
 

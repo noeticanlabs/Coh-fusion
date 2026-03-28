@@ -1,13 +1,21 @@
-import CohFusion.Geometry.VDE
-import CohFusion.Geometry.Tearing
+import CohFusion.Geometry.VDECore
+import CohFusion.Geometry.TearingCore
+import CohFusion.Core.State
 
 namespace CohFusion.Geometry
+
+open CohFusion.Core
 
 /-- Joint VDE + Tearing state for composition. -/
 structure StateFus (α : Type) where
   vde  : VDE.StateVDE α
   tear : Tearing.StateTear α
   deriving Repr, DecidableEq
+
+/-- Mapping from flat State6 to Geometry.StateFus -/
+def toStateFus {α : Type} (s : State6 α) : StateFus α :=
+  { vde  := { Z := s.Z, vZ := s.vZ, I_act := s.I_act }
+    tear := { W := s.W, vW := s.vW, I_cd := s.I_cd } }
 
 /-- Joint VDE + Tearing parameters. -/
 structure ParamsFus (α : Type) where

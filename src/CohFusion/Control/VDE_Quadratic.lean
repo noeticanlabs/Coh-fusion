@@ -1,4 +1,4 @@
-import CohFusion.Geometry.VDE
+import CohFusion.Geometry.VDECore
 
 set_option linter.unusedVariables false
 

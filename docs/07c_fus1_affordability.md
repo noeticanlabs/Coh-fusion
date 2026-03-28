@@ -44,15 +44,16 @@ Resource limits scale with operational mode:
 
 ## Implementation
 
-The affordability check is implemented in the runtime verifier:
-- See [`src/CohFusion/Numeric/Policy.lean`](src/CohFusion/Numeric/Policy.lean) for enforcement logic
-- See [`src/profile/numeric_profile.md`](src/profile/numeric_profile.md) for numeric bounds
+The affordability check is implemented in the runtime verifier and the commercial wedge layer:
+- **Affordability Law**: [`src/CohFusion/Product/CommercialWedge.lean`](../src/CohFusion/Product/CommercialWedge.lean)
+- **Defect Evaluation**: [`src/CohFusion/Control/BurnPolicyDemo.lean`](../src/CohFusion/Control/BurnPolicyDemo.lean)
+- **Policy Enforcement**: [`src/CohFusion/Numeric/Policy.lean`](../src/CohFusion/Numeric/Policy.lean)
 
 ## Status
 
 - **Doctrine specification**: Complete
-- **Implementation**: Partial (policy module exists)
-- **Mode scaling**: Specified in profile
+- **Implementation**: ✅ Complete (Staged Pipeline + Wedge)
+- **Mode scaling**: Integrated in BurnPolicyDemo
 
 ## References
 

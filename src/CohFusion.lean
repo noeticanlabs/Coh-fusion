@@ -18,15 +18,20 @@ import CohFusion.Crypto.DigestStub
 import CohFusion.Crypto.Serialize
 import CohFusion.Crypto.Ledger
 
-import CohFusion.Geometry.VDE
-import CohFusion.Geometry.Tearing
+import CohFusion.Geometry.VDECore
+import CohFusion.Geometry.VDERuntime
+import CohFusion.Geometry.TearingCore
+import CohFusion.Geometry.TearingRuntime
 import CohFusion.Geometry.Composition
+import CohFusion.Product.HardwareCertificate
+import CohFusion.Product.CommercialWedge
+import CohFusion.Control.BurnContract
+import CohFusion.Control.BurnPolicyDemo
 
 import CohFusion.Control.VDE_Abstract
 import CohFusion.Control.VDE_Quadratic
 import CohFusion.Control.Tearing_Quadratic
 import CohFusion.Control.Composition
-import CohFusion.Control.Burn
 
 import CohFusion.Continuum.Observables
 import CohFusion.Continuum.LiftedSet
