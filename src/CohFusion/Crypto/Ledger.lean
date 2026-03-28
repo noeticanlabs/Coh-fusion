@@ -1,5 +1,6 @@
 import CohFusion.Crypto.Digest
 import CohFusion.Crypto.Serialize
+import CohFusion.Runtime.HashBoundedReceipt
 import Lean.Data.Json
 
 namespace CohFusion.Crypto.Ledger
@@ -20,9 +21,13 @@ structure BurnReceipt where
   state_digest  : String -- SHA256 Hash of previous state
   deriving Repr, Inhabited, ToJson, FromJson
 
--- A mock digest function for the prototype (to be replaced with actual SHA256 bindings)
-def compute_sha256_mock (_payload : String) : String :=
-  -- In a production build, this calls a C FFI for OpenSSL or a native Lean crypto library
-  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+/--
+  Compute digest using HashBoundedReceipt (the canonical path).
+  No longer use compute_sha256_mock - that path is deprecated.
+  All receipt digests should flow through HashBoundedReceipt.
+-/
+def computeReceiptDigest [Hasher] [CanonicalSerialize BurnReceipt] (r : BurnReceipt) : String :=
+  let digest := Hasher.hashBytes (CanonicalSerialize.toCanonicalBytes r)
+  digest.toHexString
 
 end CohFusion.Crypto.Ledger

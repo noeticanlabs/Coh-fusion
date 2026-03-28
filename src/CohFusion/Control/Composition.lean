@@ -22,10 +22,16 @@ def JointGeometricLinkage [LT α] [Add α] [Mul α] [HPow α Nat α]
   CohFusion.Geometry.VDE.VgeomVDE p.vde s.vde < p.vde.Theta_V ∧
   CohFusion.Geometry.Tearing.VgeomTear p.tear s.tear < p.tear.Theta_T
 
-/-- Joint Controller Descent: The combined control input ensures the joint functional `VgeomFus`
-    is contractive under the oplax verification rule. -/
-def JointControllerDescent [LT α] [Add α] [Mul α] [HPow α Nat α]
-    (p : CohFusion.Geometry.ParamsFus α) (s : CohFusion.Geometry.StateFus α) (c : JointControl α) : Prop :=
-  True -- abstract predicate for joint stability
+/-- Joint controller descent: Additive oplax composition.
+    V_fus(s+) ≤ V_fus(s) - (1-γ)*(spend_VDE + spend_tear) + defect + coupling_slack
+    At v1, channels are decoupled (coupling_slack = 0).
+-/
+def JointControllerDescent
+    (p : CohFusion.Geometry.ParamsFus α)
+    (s sNext : CohFusion.Geometry.StateFus α)
+    (c : JointControl α)
+    (spend defect gamma couplingSlack : α) : Prop :=
+  CohFusion.Geometry.VgeomFus p sNext ≤
+    CohFusion.Geometry.VgeomFus p s - (CohFusion.Numeric.QFixed.one - gamma) * spend + defect + couplingSlack
 
 end CohFusion.Control.Composition

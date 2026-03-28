@@ -78,9 +78,43 @@ instance : DecidableEq QFixed := inferInstance
 def toFloat (q : QFixed) : Float :=
   Float.ofInt q.raw / Float.ofInt scale
 
-/-- From Float (for ingestion, with strict checking in serializer). -/
+/-- From Float (DISPLAY ONLY - unsafe for consensus logic).
+    This uses unsafe truncation and destroys exactness guarantees.
+    Never use for: ingestion, verification, or consensus-critical paths. -/
+@[simp]
 def fromFloat (f : Float) : QFixed :=
   ⟨(f * Float.ofInt scale).toUInt64.toNat⟩
+
+/-- Exact decimal string parser for QFixed.
+    Accepts: optional sign, integer digits, optional decimal fraction.
+    Format: [+-]?[0-9]+(\.[0-9]+)?
+    Uses exact integer arithmetic with 2^64 scaling. -/
+def fromDecimalString (s : String) : Except String QFixed :=
+  let chars := s.toList
+  match chars with
+  | [] => Except.error "Empty string"
+  | c :: cs =>
+    let (sign, digits) :=
+      if c = '+' then (1, cs)
+      else if c = '-' then (-1, cs)
+      else (1, chars)
+    let digitStr := String.mk digits
+    match digitStr.splitOn '.' with
+    | [intPart] =>
+      match Int.ofString? intPart with
+      | some n => Except.ok ⟨sign * n * scale⟩
+      | none => Except.error s!"Invalid integer: {intPart}"
+    | [intPart, fracPart] =>
+      match Int.ofString? intPart with
+      | some nInt =>
+        match Int.ofString? fracPart with
+        | some nFrac =>
+          let fracScale := 10^fracPart.length
+          let scaled := nFrac * scale / fracScale
+          Except.ok ⟨sign * (nInt * scale + scaled)⟩
+        | none => Except.error s!"Invalid fractional: {fracPart}"
+      | none => Except.error s!"Invalid integer: {intPart}"
+    | _ => Except.error "Invalid format: multiple decimal points"
 
 end QFixed
 

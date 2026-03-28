@@ -22,21 +22,29 @@ def main (args : List String) : IO Unit := do
     let stateFile ← IO.FS.readFile statePath
     let stateJson ← IO.ofExcept (Json.parse stateFile)
 
-    -- In the new staged pipeline, we use the typed HardwareCertificate
-    -- Note: We map the old JSON schema to the new typed object manually or via a new instance
-    let cert : HardwareCertificate := {
-      certificate_id := "cert_demo",
-      hardware_id := "hw_demo",
-      latency := QFixed.fromFloat 0.005,
-      observation_error := QFixed.fromFloat 0.001,
-      slew_limit := QFixed.fromFloat 200.0,
-      saturation_limit := QFixed.fromFloat 1000.0,
-      operating_regime_hash := "sha256:demo",
-      calibration_epoch := "2026-03-28",
-      expiry := "2027-01-01",
-      root_of_trust := "coh_root",
-      signature := "sig"
-    }
+    -- Get today's date for validation (in real system, get from system clock)
+    let today := "2026-03-28"
+    let expectedRegimeHash := "sha256:demo"
+
+    -- Parse hardware certificate from JSON file
+    let hwFile ← IO.FS.readFile hwPath
+    let hwJson ← IO.ofExcept (Json.parse hwFile)
+    let certRaw : HardwareCertificate ← IO.ofExcept (fromJson? hwJson)
+
+    -- Validate certificate (reject expired/mismatched certs)
+    let validatedCert ←
+      match validateCertificate today expectedRegimeHash certRaw with
+      | Except.error err =>
+        IO.println s!"CERTIFICATE_VALIDATION_FAILED: {err}"
+        pure none
+      | Except.ok vc =>
+        IO.println s!"Certificate {vc.cert.certificate_id} validated successfully"
+        pure (some vc)
+
+    let cert ←
+      match validatedCert with
+      | none => panic! "Invalid certificate"
+      | some validated => validated.cert
 
     let plasmaState : PlasmaState ← IO.ofExcept (fromJson? stateJson)
 

@@ -121,49 +121,38 @@ def evaluateRisk (wedge : CommercialWedge) (state : State6 QFixed) : QFixed :=
 def isAffordable (_wedge : CommercialWedge) (defect authority : QFixed) : Bool :=
   defect < authority
 
-/--
-  End-to-end product runtime path:
+/-- Build a MicroReceipt from wedge inputs. -/
+def buildMicroReceipt
+    (wedge : CommercialWedge)
+    (expectedState nextState : ObservableChannels)
+    (spend defect : QFixed) : CohFusion.Core.MicroReceipt QFixed :=
+  { statePrev      := toState6 expectedState
+  , stateNext    := toState6 nextState
+  , spendAuth    := spend
+  , defectDeclared := defect }
+
+/-- End-to-end product runtime path:
   construct a micro-receipt, call the deterministic verifier, and map to wedge decision.
-
-  NOTE: This is the orchestration entry point. The actual verifyRV call requires
-  typeclass instances (LE, LT, Add, Sub, Mul, HPow, OfNat) for QFixed, which are
-  available. Full integration with Runtime.VerifierSemantics.verifyRV will be
-  completed in the next phase after typeclass infrastructure stabilizes.
-
-  For now, this returns a basic allow decision that maps to the wedge's mode.
+  Now uses verifyRV_QFixed (the real kernel) instead of simplified logic.
 -/
 def evaluateTransition
     (wedge : CommercialWedge)
     (expectedState nextState : ObservableChannels)
     (spend defect : QFixed) : WedgeDecision :=
-  -- Orchestration: ingest observables -> build state -> evaluate risk -> evaluate affordability
-  let state6 := toState6 nextState
-  let risk := evaluateRisk wedge state6
+  -- Build the micro-receipt
+  let r := buildMicroReceipt wedge expectedState nextState spend defect
 
-  -- Affordability check (simplified for now)
-  let affordable := isAffordable wedge defect spend
+  -- Call the real verifier kernel
+  let expectedState6 := toState6 expectedState
+  let outcome := CohFusion.Runtime.verifyRV_QFixed
+      wedge.risk_params
+      r
+      expectedState6
+      wedge.threshold
+      wedge.defect_limit
+      wedge.gamma_oplax
 
-  -- Map to decision based on mode
-  match wedge.mode with
-  | DeploymentMode.replay =>
-    if risk ≤ wedge.threshold && affordable then
-      WedgeDecision.allow
-    else
-      WedgeDecision.reject RejectCode.thresholdExceeded "REPLAY_FAILURE"
-  | DeploymentMode.shadow =>
-    if risk ≤ wedge.threshold && affordable then
-      WedgeDecision.allow
-    else
-      WedgeDecision.warn "SHADOW_VIOLATION"
-  | DeploymentMode.advisory =>
-    if risk ≤ wedge.threshold && affordable then
-      WedgeDecision.allow
-    else
-      WedgeDecision.warn "ADVISORY_ALERT"
-  | DeploymentMode.hard_gate =>
-    if risk ≤ wedge.threshold && affordable then
-      WedgeDecision.allow
-    else
-      WedgeDecision.reject RejectCode.thresholdExceeded "HARD_GATE_TRIP"
+  -- Map to wedge decision
+  decide wedge outcome
 
 end CohFusion.Product.CommercialWedge

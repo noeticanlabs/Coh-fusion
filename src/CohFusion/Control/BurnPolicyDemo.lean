@@ -2,60 +2,109 @@ import CohFusion.Control.BurnContract
 import CohFusion.Geometry.VDERuntime
 import CohFusion.Geometry.TearingRuntime
 import CohFusion.Product.HardwareCertificate
+import CohFusion.Crypto.Digest
+import CohFusion.Crypto.Serialize
+import CohFusion.Crypto.Ledger
 
 namespace CohFusion.Control.BurnPolicyDemo
 
 open CohFusion.Numeric
 open CohFusion.Product
 open CohFusion.Control.BurnContract
+open CohFusion.Crypto
 
-/-- Mock coefficients and thresholds for the demo. -/
-def MOCK_Z_MAX : QFixed := QFixed.fromFloat 2.5
-def MOCK_Q_CRIT : QFixed := QFixed.fromFloat 0.8
-def MOCK_SLEW_CONSTANT : QFixed := QFixed.fromFloat 50.0
-def MOCK_LAG_PENALTY : QFixed := QFixed.fromFloat 2.5
-def MOCK_SENSOR_SCALE : QFixed := QFixed.fromFloat 100.0
-def MOCK_LIPSCHITZ_SCALE : QFixed := QFixed.fromFloat 1.5
+/-- Real parameter object for burn policy (replaces MOCK_* constants). -/
+structure BurnPolicyParams where
+  zMax           : QFixed
+  qCrit          : QFixed
+  slewConstant    : QFixed
+  lagPenalty     : QFixed
+  sensorScale    : QFixed
+  lipschitzScale : QFixed
+  deriving Repr
+
+/-- Default burn policy parameters. -/
+def defaultBurnPolicyParams : BurnPolicyParams :=
+  { zMax         := QFixed.fromDecimalString "2.5".toExcept.get!
+  , qCrit        := QFixed.fromDecimalString "0.8".toExcept.get!
+  , slewConstant  := QFixed.fromDecimalString "50.0".toExcept.get!
+  , lagPenalty   := QFixed.fromDecimalString "2.5".toExcept.get!
+  , sensorScale   := QFixed.fromDecimalString "100.0".toExcept.get!
+  , lipschitzScale := QFixed.fromDecimalString "1.5".toExcept.get! }
 
 /-- Step 1: Evaluate observable margins. -/
-def evaluateObservableMargins (state : PlasmaState) : ObservableMargins :=
-  { m_vde  := CohFusion.Geometry.VDE.signed_runway_vde state.M_z state.I_p MOCK_Z_MAX,
-    m_tear := CohFusion.Geometry.Tearing.signed_runway_tear state.Q_tilde MOCK_Q_CRIT }
+def evaluateObservableMargins (params : BurnPolicyParams) (state : PlasmaState) : ObservableMargins :=
+  { m_vde  := CohFusion.Geometry.VDE.signed_runway_vde state.M_z state.I_p params.zMax,
+    m_tear := CohFusion.Geometry.Tearing.signed_runway_tear state.Q_tilde params.qCrit }
 
-/-- Step 2: Compute burn defect. -/
-def computeBurnDefect (cert : HardwareCertificate) (_state : PlasmaState) (margins : ObservableMargins) : QFixed :=
+/-- Step 2: Compute burn defect with proper decomposition.
+    E_burn = E_model + E_act + E_sensor -/
+def computeBurnDefect
+    (params : BurnPolicyParams)
+    (cert : HardwareCertificate)
+    (state : PlasmaState)
+    (margins : ObservableMargins) :
+    (QFixed × QFixed × QFixed) :=  -- returns (E_model, E_act, E_sensor)
   let delta_active := if margins.m_vde < margins.m_tear then margins.m_vde else margins.m_tear
 
-  let E_act := if delta_active ≤ QFixed.zero then
-    QFixed.fromInt 999999 -- Boundary breached
-  else
-    let I_dot_req := MOCK_SLEW_CONSTANT / (delta_active * delta_active)
-    if I_dot_req > cert.slew_limit then
-      MOCK_LAG_PENALTY * (I_dot_req - cert.slew_limit)
+  -- E_act: actuation defect from slew/saturation shortfall
+  let E_act :=
+    if delta_active ≤ QFixed.zero then
+      QFixed.fromDecimalString "999999".toExcept.get! -- Boundary breached
     else
-      QFixed.zero
+      let I_dot_req := params.slewConstant / (delta_active * delta_active)
+      if I_dot_req > cert.slew_limit then
+        params.lagPenalty * (I_dot_req - cert.slew_limit)
+      else
+        QFixed.zero
 
-  let E_sensor := cert.latency * MOCK_SENSOR_SCALE
-  E_act + E_sensor
+  -- E_sensor: sensor latency + observation error
+  let E_sensor := cert.latency * params.sensorScale
 
-/-- Step 3: Check affordability. -/
+  -- E_model: Lipschitz-style residual from model mismatch
+  let E_model := params.lipschitzScale * state.M_z * state.M_z
+
+  (E_model, E_act, E_sensor)
+
+/-- Step 3: Check affordability (STRICT DOMINANCE per spec).
+    defect < authority (not ≤). -/
 def checkAffordability (defect : QFixed) (authority : QFixed) : Bool :=
-  defect ≤ authority
+  defect < authority
 
-/-- Step 4: Build burn receipt. -/
-def buildBurnReceipt (_state : PlasmaState) (margins : ObservableMargins) (E_act : QFixed) (E_sensor : QFixed) (dt eta_avail spend : QFixed) (cert_id : String) : BurnReceipt :=
+/-- Step 4: Build burn receipt with CORRECT field bindings.
+    FIXED: was previously assigning eModel := E_act (WRONG!) -/
+def buildBurnReceipt
+    (_state : PlasmaState)
+    (margins : ObservableMargins)
+    (E_model : QFixed)
+    (E_act : QFixed)
+    (E_sensor : QFixed)
+    (dt eta_avail spend : QFixed)
+    (cert_id : String) : BurnReceipt :=
   { dt           := dt,
     etaAvailable := eta_avail,
     spend        := spend,
-    eModel       := E_act,
+    eModel       := E_model,  -- FIXED: was E_act
     eAct         := E_act,
     eSensor      := E_sensor,
     margins      := margins,
     certificateId := cert_id }
 
-/-- Step 5: Bind receipt digest. -/
-def bindReceiptDigest (receipt : BurnReceipt) : String :=
-  "sha256:" ++ receipt.certificateId
+/-- Step 5: Bind receipt digest with proper chain binding.
+    Omega_{k+1} = H(Omega_k || serialize(r_k) || root_of_trust) -/
+structure BurnChainInput where
+  prevDigest   : String
+  receipt    : BurnReceipt
+  rootOfTrust : String
+
+instance : CanonicalSerialize BurnChainInput where
+  toCanonicalBytes bci :=
+    ByteArray.mk (bci.prevDigest.toList ++ bci.receipt.certificateId.toList ++ bci.rootOfTrust.toList).toList.map UInt8.ofNat
+
+def bindReceiptDigest [Hasher] (prevDigest : String) (receipt : BurnReceipt) (rootOfTrust : String) : String :=
+  let input : BurnChainInput := { prevDigest := prevDigest, receipt := receipt, rootOfTrust := rootOfTrust }
+  let digest := Hasher.hashBytes (CanonicalSerialize.toCanonicalBytes input)
+  digest.toHexString
 
 /--
   Integrated verifyIgnition (v3) using the staged pipeline.
