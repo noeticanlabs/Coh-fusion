@@ -1,0 +1,137 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Receipt Schema",
+  "description": "Base schema for all receipt types in Coh-Fusion",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "#/definitions/controlReceipt" },
+    { "$ref": "#/definitions/burnReceipt" },
+    { "$ref": "#/definitions/certificateReceipt" }
+  ],
+  "definitions": {
+    "controlReceipt": {
+      "type": "object",
+      "properties": {
+        "receipt_type": {
+          "type": "string",
+          "const": "control"
+        },
+        "receipt_id": {
+          "type": "string",
+          "pattern": "^ctrl_[a-zA-Z0-9]{8}$"
+        },
+        "control_morphism": {
+          "type": "object",
+          "properties": {
+            "source": {
+              "type": "string"
+            },
+            "target": {
+              "type": "string"
+            },
+            "morphism_data": {
+              "type": "string",
+              "description": "Base64-encoded morphism data"
+            }
+          },
+          "required": ["source", "target", "morphism_data"]
+        },
+        "execution_timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "hardware_ref": {
+          "type": "string",
+          "pattern": "^hw_[a-zA-Z0-9]{8}$"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": ["receipt_type", "receipt_id", "control_morphism", "execution_timestamp", "hardware_ref", "digest"]
+    },
+    "burnReceipt": {
+      "type": "object",
+      "properties": {
+        "receipt_type": {
+          "type": "string",
+          "const": "burn"
+        },
+        "receipt_id": {
+          "type": "string",
+          "pattern": "^burn_[a-zA-Z0-9]{8}$"
+        },
+        "control_receipt_ref": {
+          "type": "string",
+          "pattern": "^ctrl_[a-zA-Z0-9]{8}$"
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "fuel_consumed_mj": {
+              "type": "number",
+              "minimum": 0
+            },
+            "power_peak_mw": {
+              "type": "number",
+              "minimum": 0
+            },
+            "duration_ms": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "power_integration_mj": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "required": ["fuel_consumed_mj", "power_peak_mw", "duration_ms"]
+        },
+        "integrity_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": ["receipt_type", "receipt_id", "control_receipt_ref", "resources", "integrity_hash"]
+    },
+    "certificateReceipt": {
+      "type": "object",
+      "properties": {
+        "receipt_type": {
+          "type": "string",
+          "const": "certificate"
+        },
+        "receipt_id": {
+          "type": "string",
+          "pattern": "^cert_[a-zA-Z0-9]{8}$"
+        },
+        "hardware_id": {
+          "type": "string",
+          "pattern": "^hw_[a-zA-Z0-9]{8}$"
+        },
+        "certificate_data": {
+          "type": "object",
+          "properties": {
+            "signature": {
+              "type": "string"
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "root_of_trust": {
+              "type": "string"
+            }
+          },
+          "required": ["signature", "timestamp", "root_of_trust"]
+        },
+        "verification_result": {
+          "type": "string",
+          "enum": ["valid", "invalid", "expired"]
+        }
+      },
+      "required": ["receipt_type", "receipt_id", "hardware_id", "certificate_data", "verification_result"]
+    }
+  }
+}

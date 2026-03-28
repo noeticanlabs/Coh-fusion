@@ -10,7 +10,6 @@
     # pkgs.python311Packages.pip
     # pkgs.nodejs_22
     # pkgs.nodePackages.nodemon
-    pkgs.lean4
     pkgs.elan
   ];
   # Sets environment variables in the workspace

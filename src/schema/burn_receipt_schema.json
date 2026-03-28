@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Burn Receipt Schema",
+  "description": "Schema for burn receipts recording resource consumption in Coh-Fusion",
+  "type": "object",
+  "properties": {
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^burn_[a-zA-Z0-9]{8}$",
+      "description": "Unique burn receipt identifier"
+    },
+    "certificate_ref": {
+      "type": "string",
+      "pattern": "^cert_[a-zA-Z0-9]{8}$",
+      "description": "Reference to the hardware certificate for this burn"
+    },
+    "fuel_consumed_mj": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Total fuel consumed in megajoules"
+    },
+    "power_peak_mw": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Peak power consumption in megawatts"
+    },
+    "duration_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total burn duration in milliseconds"
+    },
+    "power_integration_mj": {
+      "type": "number",
+      "description": "Integrated power over time (area under power curve)"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Burn execution timestamp (UTC)"
+    },
+    "control_ref": {
+      "type": "string",
+      "description": "Reference to the control action that triggered this burn"
+    },
+    "integrity_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 hash for receipt integrity verification"
+    },
+    "burn_mode": {
+      "type": "string",
+      "enum": ["startup", "flat_top", "rampdown", "transient"],
+      "description": "Operational mode during which burn occurred"
+    },
+    "resource_limits": {
+      "type": "object",
+      "properties": {
+        "fuel_limit_mj": {
+          "type": "number"
+        },
+        "power_limit_mw": {
+          "type": "number"
+        },
+        "duration_limit_ms": {
+          "type": "integer"
+        },
+        "limits_respected": {
+          "type": "boolean"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional burn metadata"
+    }
+  },
+  "required": [
+    "receipt_id",
+    "certificate_ref",
+    "fuel_consumed_mj",
+    "power_peak_mw",
+    "duration_ms",
+    "integrity_hash",
+    "burn_mode"
+  ]
+}

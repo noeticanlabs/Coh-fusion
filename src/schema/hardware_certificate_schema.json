@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Hardware Certificate Schema",
+  "description": "Schema for hardware certificates in the Coh-Fusion control system",
+  "type": "object",
+  "properties": {
+    "certificate_id": {
+      "type": "string",
+      "pattern": "^cert_[a-zA-Z0-9]{8}$",
+      "description": "Unique certificate identifier"
+    },
+    "hardware_id": {
+      "type": "string",
+      "pattern": "^hw_[a-zA-Z0-9]{8}$",
+      "description": "Hardware component identifier"
+    },
+    "control_action": {
+      "type": "object",
+      "description": "The control action being certified"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Certificate generation timestamp (UTC)"
+    },
+    "signature": {
+      "type": "string",
+      "description": "Hardware root of trust signature (base64 encoded)"
+    },
+    "validity_period": {
+      "type": "object",
+      "properties": {
+        "not_before": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "not_after": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "certificate_type": {
+      "type": "string",
+      "enum": ["control_execution", "hardware_state", "sensor_reading"],
+      "description": "Type of certificate"
+    },
+    "root_of_trust": {
+      "type": "string",
+      "description": "Identifier of the root of trust that signed this certificate"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional certificate metadata"
+    }
+  },
+  "required": [
+    "certificate_id",
+    "hardware_id",
+    "control_action",
+    "timestamp",
+    "signature",
+    "certificate_type",
+    "root_of_trust"
+  ]
+}

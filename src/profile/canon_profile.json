@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Canon Profile",
+  "description": "Canonical profile configuration for the Coh-Fusion control system",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Profile version identifier"
+    },
+    "control_algebra_version": {
+      "type": "string",
+      "description": "R0-R4 morphism version"
+    },
+    "numeric_profile_ref": {
+      "type": "string",
+      "description": "Reference to numeric profile document"
+    },
+    "hardware_root_of_trust": {
+      "type": "string",
+      "description": "Hardware root of trust identifier"
+    },
+    "max_control_magnitude": {
+      "type": "number",
+      "description": "Maximum control magnitude in normalized units"
+    },
+    "max_perturbation_bound": {
+      "type": "number",
+      "description": "Maximum perturbation bound epsilon"
+    },
+    "dissipation_spectral_bound": {
+      "type": "number",
+      "description": "Maximum allowed spectral radius for dissipation operators"
+    },
+    "tearing_comparison_epsilon": {
+      "type": "number",
+      "description": "Bounding constant for tearing comparison theorem"
+    }
+  },
+  "required": [
+    "version",
+    "control_algebra_version",
+    "numeric_profile_ref",
+    "max_control_magnitude",
+    "max_perturbation_bound",
+    "dissipation_spectral_bound"
+  ]
+}
