@@ -1,4 +1,8 @@
+import CohFusion.Numeric.QFixed
+
 namespace CohFusion.Geometry.VDE
+
+open CohFusion.Numeric
 
 /-- VDE (Vertically-Distorted Element) state for finite-dimensional wedge geometry. -/
 structure StateVDE (α : Type) where
@@ -20,6 +24,15 @@ structure Params (α : Type) where
 /-- Geometric VDE functional (Vgeom) - Public Risk Functional. -/
 def VgeomVDE [Add α] [Mul α] [HPow α Nat α] (p : Params α) (s : StateVDE α) : α :=
   p.omega1 * s.Z^2 + p.omega2 * s.vZ^2 + p.omega3 * s.I_act^2
+
+/--
+  Computable boundary evaluation for VDE.
+  G_VDE(z) = M_z(z) - Z_max * I_p(z)
+  For the demo, we simplify this to the distance-to-wall.
+-/
+def compute_m_VDE (p : Params QFixed) (s : StateVDE QFixed) : QFixed :=
+  let z_abs := if s.Z < QFixed.zero then QFixed.zero - s.Z else s.Z
+  p.Z_wall - z_abs
 
 /-- Disruption predicate: Physical wall touch condition.
     In the VDE case, this is usually defined by the vertical displacement exceeding the wall position. -/

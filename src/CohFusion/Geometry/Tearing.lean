@@ -1,4 +1,8 @@
+import CohFusion.Numeric.QFixed
+
 namespace CohFusion.Geometry.Tearing
+
+open CohFusion.Numeric
 
 /-- Tearing mode state for finite-dimensional geometry. -/
 structure StateTear (α : Type) where
@@ -19,6 +23,10 @@ structure Params (α : Type) where
 /-- Geometric Tearing functional (Vgeom) - Public Risk Functional. -/
 def VgeomTear [Add α] [Mul α] [HPow α Nat α] (p : Params α) (s : StateTear α) : α :=
   p.nu1 * s.W^2 + p.nu2 * s.vW^2 + p.nu3 * s.I_cd^2
+
+/-- Computable distance-to-boundary for Tearing. -/
+def compute_m_tear (p : Params QFixed) (s : StateTear QFixed) : QFixed :=
+  p.W_crit - s.W
 
 /-- Disruption predicate: Physical critical-width event. -/
 def DisruptedTear [LE α] (p : Params α) (s : StateTear α) : Prop :=

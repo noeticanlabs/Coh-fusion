@@ -5,15 +5,18 @@ set_option linter.unusedVariables false
 
 namespace CohFusion.Numeric
 
-/-
-THEORETICAL BOUNDARY / NUMERIC KERNEL
-These statements are required later but are not yet derived in the current kernel.
+/--
+  Evaluates if a QFixed value falls within a given interval.
+  Used for grounding the theoretical bounds in concrete arithmetic.
 -/
+def QFixed.inInterval (q : QFixed) (i : Interval) : Bool :=
+  i.lo ≤ q && q ≤ i.hi
 
-axiom qfixed_add_order_sound :
-  ∀ a b c : QFixed, True
+/--
+  Concrete evaluation of the discretization defect bound.
+  In Step 3, we'll use this to bound E_disc.
+-/
+def checkDiscretizationBound (defect : QFixed) (bound : QFixed) : Bool :=
+  defect ≤ bound
 
-axiom interval_overapprox_sound :
-  ∀ x y : Interval, True
-
-end Numeric
+end CohFusion.Numeric

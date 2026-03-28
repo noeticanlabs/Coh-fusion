@@ -4,28 +4,68 @@ set_option linter.unusedVariables false
 
 namespace CohFusion.Numeric
 
-/-- Fixed-point rational with binary fractional bits. -/
+/--
+  Fixed-point rational with rigid 64-bit fractional part (Q64.64 profile).
+  Internally uses Lean's arbitrary-precision `Int`.
+  Scaling factor is 2^64.
+-/
 structure QFixed where
-  raw      : Int
-  fracBits : Nat
-  deriving Repr, DecidableEq
+  raw : Int
+  deriving Repr, DecidableEq, Inhabited
+
+namespace QFixed
+
+def scale : Int := 18446744073709551616 -- 2^64
 
 /-- Zero QFixed. -/
-def zero : QFixed := { raw := 0, fracBits := 0 }
+def zero : QFixed := ⟨0⟩
 
-/-- Addition with overflow check. -/
-def add (a b : QFixed) : Option QFixed :=
-  if a.fracBits = b.fracBits then
-    some { raw := a.raw + b.raw, fracBits := a.fracBits }
-  else
-    none
+/-- One QFixed. -/
+def one : QFixed := ⟨scale⟩
 
-/-- Subtraction with overflow check. -/
-def sub (a b : QFixed) : Option QFixed :=
-  if a.fracBits = b.fracBits then
-    some { raw := a.raw - b.raw, fracBits := a.fracBits }
-  else
-    none
+/-- From Int to QFixed. -/
+def fromInt (i : Int) : QFixed := ⟨i * scale⟩
+
+/-- Addition. -/
+def add (a b : QFixed) : QFixed := ⟨a.raw + b.raw⟩
+
+/-- Subtraction. -/
+def sub (a b : QFixed) : QFixed := ⟨a.raw - b.raw⟩
+
+/--
+  Multiplication with 64-bit shift.
+  (a * b) / scale
+-/
+def mul (a b : QFixed) : QFixed :=
+  ⟨(a.raw * b.raw) / scale⟩
+
+/-- Division. -/
+def div (a b : QFixed) : QFixed :=
+  ⟨(a.raw * scale) / b.raw⟩
+
+instance : Add QFixed := ⟨add⟩
+instance : Sub QFixed := ⟨sub⟩
+instance : Mul QFixed := ⟨mul⟩
+instance : Div QFixed := ⟨div⟩
+
+instance : LT QFixed := ⟨λ a b => a.raw < b.raw⟩
+instance : LE QFixed := ⟨λ a b => a.raw ≤ b.raw⟩
+
+instance : DecidableRel (LT.lt : QFixed → QFixed → Prop) :=
+  λ a b => (inferInstance : Decidable (a.raw < b.raw))
+
+instance : DecidableRel (LE.le : QFixed → QFixed → Prop) :=
+  λ a b => (inferInstance : Decidable (a.raw ≤ b.raw))
+
+/-- Convert to Float (for logging/display only, not for core logic). -/
+def toFloat (q : QFixed) : Float :=
+  Float.ofInt q.raw / Float.ofInt scale
+
+/-- From Float (for ingestion, with strict checking in serializer). -/
+def fromFloat (f : Float) : QFixed :=
+  ⟨(f * Float.ofInt scale).toUInt64.toNat⟩
+
+end QFixed
 
 instance : ConsensusSafe QFixed := ⟨⟩
 

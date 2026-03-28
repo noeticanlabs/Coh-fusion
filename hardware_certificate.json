@@ -1,0 +1,16 @@
+{
+  "certificate_id": "cert_12345678",
+  "hardware_id": "hw_87654321",
+  "I_max": "1000.0",
+  "I_dot_max": "200.0",
+  "tau_sensor": "0.005",
+  "timestamp": "2026-03-28T15:00:00Z",
+  "signature": "base64_sig_placeholder",
+  "validity_period": {
+    "not_before": "2026-01-01T00:00:00Z",
+    "not_after": "2027-01-01T00:00:00Z"
+  },
+  "certificate_type": "control_execution",
+  "root_of_trust": "coh_root_01",
+  "canon_profile_hash": "sha256:f123abc456"
+}
