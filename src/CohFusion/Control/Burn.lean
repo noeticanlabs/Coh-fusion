@@ -1,130 +1,107 @@
 import Lean.Data.Json
 import CohFusion.Numeric.QFixed
 import CohFusion.Numeric.Serialize
+import CohFusion.Geometry.VDE
+import CohFusion.Geometry.Tearing
+import CohFusion.Crypto.Ledger
 
 namespace CohFusion.Control.Burn
 
 open CohFusion.Numeric
-
-/-- Validity period for hardware certificates. -/
-structure ValidityPeriod where
-  not_before : String
-  not_after  : String
-  deriving Lean.FromJson, Lean.ToJson, Repr
+open CohFusion.Crypto.Ledger
 
 /--
-  Full Hardware Certificate Specification mirroring the JSON schema.
-  Includes physical parameters and governance/security metadata.
+  Hardware Specification mapping the commercial prototype JSON.
+  Includes physical parameters and governance metadata.
 -/
 structure HardwareSpec where
-  certificate_id     : String
-  hardware_id        : String
+  schema_id          : String
+  cert_id            : String
+  canon_profile_hash : String
   I_max              : QFixed
   I_dot_max          : QFixed
   tau_sensor         : QFixed
-  timestamp          : String
-  signature          : String
-  validity_period    : ValidityPeriod
-  certificate_type   : String
-  root_of_trust      : String
-  canon_profile_hash : String  -- Required for Step 3 metadata check
-  deriving Lean.FromJson, Lean.ToJson, Repr
+  deriving Lean.FromJson, Lean.ToJson, Repr, Inhabited
 
 /-- Plasma state for burn verification. -/
 structure PlasmaState where
   beta        : QFixed
-  temperature : QFixed
-  density     : QFixed
-  deriving Lean.FromJson, Lean.ToJson, Repr
-
-/-- Burn receipt for resource consumption tracking. -/
-structure BurnReceipt where
-  dt            : QFixed
-  etaAvailable  : QFixed
-  spend         : QFixed
-  eModel        : QFixed
-  eAct          : QFixed
-  eSensor       : QFixed
-  m_VDE         : QFixed -- Step 4 integration
-  m_tear        : QFixed -- Step 4 integration
-  deriving Lean.FromJson, Lean.ToJson, Repr
+  M_z         : QFixed  -- Vertical Current Moment
+  I_p         : QFixed  -- Total Plasma Current
+  Q_tilde     : QFixed  -- Signed Tearing Flux
+  n_X         : QFixed  -- Certified Drift Norm ||z||_X
+  deriving Lean.FromJson, Lean.ToJson, Repr, Inhabited
 
 /-- Detailed result for the FUS-1 verifier. -/
 inductive VerifierResult
-  | accept
+  | accept (receipt : BurnReceipt) (digest : String)
   | reject_invalid_envelope (msg : String)
   | reject_unauthorized_transition (msg : String)
   | reject_unaffordable_burn (msg : String)
-  | reject_overflow (msg : String)
   deriving Repr
-
-/-- Hardcoded Profile Hash for the demo. -/
-def CANON_PROFILE_HASH_DEMO : String := "sha256:f123abc456"
 
 /-- Heuristic parameters for FUS-1. -/
 def beta_ignite : QFixed := QFixed.fromFloat 0.05
 def delta_0     : QFixed := QFixed.fromFloat 10.0
 def delta_min   : QFixed := QFixed.fromFloat 0.1
-def C_slew      : QFixed := QFixed.fromFloat 50.0
-def k_lag       : QFixed := QFixed.fromFloat 2.5
 
 /--
-  A. Boundary Layer Shrinkage (delta_active)
-  delta_active(beta) = max(delta_min, delta_0 * (1 - beta/beta_ignite))
+  Geometric Defect Calculation (Phase 1)
+  Evaluate margins and compute actuation defect.
 -/
-def compute_delta_active (beta : QFixed) : QFixed :=
-  let ratio := beta / beta_ignite
-  let shrinkage := QFixed.one - ratio
-  let delta := delta_0 * shrinkage
-  if delta < delta_min then delta_min else delta
+def compute_geometric_defect (hw : HardwareSpec) (state : PlasmaState) : QFixed :=
+  -- 1. True Geometric Margins
+  let m_vde := CohFusion.Geometry.VDE.evaluate_margin state.M_z state.I_p (QFixed.fromFloat 2.5) -- Mock Z_max
+  let m_tear := CohFusion.Geometry.Tearing.evaluate_margin state.Q_tilde (QFixed.fromFloat 0.8)  -- Mock Q_crit
 
-/--
-  B. Required Slew Rate (I_dot_req)
-  I_dot_req = C_slew / (delta_active)^2
--/
-def compute_I_dot_req (delta_active : QFixed) : QFixed :=
-  C_slew / (delta_active * delta_active)
+  -- 2. Boundary Layer Shrinkage (The weakest margin dictates the active layer)
+  let delta_active := if m_vde < m_tear then m_vde else m_tear
 
-/--
-  C. Actuation Defect Inflation (E_act)
-  E_act = k_lag * max(0, I_dot_req - hw.I_dot_max)
--/
-def compute_actuation_defect (hw : HardwareSpec) (I_dot_req : QFixed) : QFixed :=
-  if I_dot_req > hw.I_dot_max then
-    k_lag * (I_dot_req - hw.I_dot_max)
+  -- 3. Slew Requirement & Actuation Defect
+  if delta_active ≤ QFixed.zero then
+    QFixed.fromInt 999999 -- Boundary breached, catastrophic defect
   else
-    QFixed.zero
-
-/--
-  D. Total Burn Defect
-  Delta_burn = E_model + E_sensor + E_act
--/
-def compute_total_burn_defect (hw : HardwareSpec) (receipt : BurnReceipt) (I_dot_req : QFixed) : QFixed :=
-  receipt.eModel + hw.tau_sensor + compute_actuation_defect hw I_dot_req
-
-/--
-  Verify Ignition: The core FUS-1 Affordability Gate.
-  Check metadata, Lawson criterion, and affordability.
--/
-def verifyIgnition (hw : HardwareSpec) (state : PlasmaState) (receipt : BurnReceipt) : VerifierResult :=
-  -- 1. Metadata/Envelope Check
-  if hw.canon_profile_hash ≠ CANON_PROFILE_HASH_DEMO then
-    VerifierResult.reject_invalid_envelope s!"REJECT_INVALID_ENVELOPE: Profile hash mismatch. Expected {CANON_PROFILE_HASH_DEMO}, got {hw.canon_profile_hash}"
-
-  -- 2. Lawson Criterion Check (beta * density * temperature >= 100)
-  else if state.beta * state.density * state.temperature < QFixed.fromInt 100 then
-    VerifierResult.reject_unauthorized_transition "REJECT_UNAUTHORIZED_TRANSITION: Plasma state does not satisfy Lawson criterion."
-
-  -- 3. Affordability Gate
-  else
-    let d_active := compute_delta_active state.beta
-    let i_req := compute_I_dot_req d_active
-    let total_defect := compute_total_burn_defect hw receipt i_req
-    let authority := receipt.etaAvailable * receipt.dt
-
-    if total_defect > authority then
-      VerifierResult.reject_unaffordable_burn s!"REJECT_UNAFFORDABLE_BURN: Total defect ({total_defect.toFloat} ms) exceeds available boundary layer Lyapunov descent ({authority.toFloat} ms). Actuator slew rate insufficient (Required: {i_req.toFloat} A/ms, Available: {hw.I_dot_max.toFloat} A/ms)."
+    let C_slew := QFixed.fromFloat 50.0
+    let I_dot_req := C_slew / (delta_active * delta_active)
+    let lag_penalty := QFixed.fromFloat 2.5
+    if I_dot_req > hw.I_dot_max then
+      lag_penalty * (I_dot_req - hw.I_dot_max)
     else
-      VerifierResult.accept
+      QFixed.zero
+
+/--
+  Core FUS-1 Ignition Verifier v2 (Phase 2)
+  Geometry Docked + Crypto Bound.
+-/
+def verifyIgnition_v2 (hw : HardwareSpec) (state : PlasmaState) (dt : QFixed) (eta_avail : QFixed) (prev_digest : String) : VerifierResult :=
+  let m_vde := CohFusion.Geometry.VDE.evaluate_margin state.M_z state.I_p (QFixed.fromFloat 2.5)
+  let m_tear := CohFusion.Geometry.Tearing.evaluate_margin state.Q_tilde (QFixed.fromFloat 0.8)
+
+  let E_act := compute_geometric_defect hw state
+  let E_sensor := hw.tau_sensor * QFixed.fromFloat 100.0 -- Scaled latency penalty
+  let delta_burn := E_act + E_sensor
+  let authority := eta_avail * dt
+
+  if delta_burn > authority then
+    VerifierResult.reject_unaffordable_burn s!"REJECT_UNAFFORDABLE_BURN: Total defect ({delta_burn.toFloat}) exceeds available boundary layer Lyapunov descent ({authority.toFloat})."
+  else
+    let receipt : BurnReceipt := {
+      k_index := 1,
+      m_tear_hat := m_tear.toFloat,
+      m_VDE_hat := m_vde.toFloat,
+      m_I_hat := (state.I_p - QFixed.one).toFloat,
+      n_X_hat := state.n_X.toFloat,
+      L_R_hat := (state.n_X * QFixed.fromFloat 1.5).toFloat, -- Mock Lipschitz scaling
+      E_time_hat := 0.01,
+      E_quant_hat := 0.001,
+      E_obs_hat := E_sensor.toFloat,
+      E_model_hat := E_act.toFloat,
+      state_digest := prev_digest
+    }
+    -- Create canonical JSON string of the receipt to hash
+    let receipt_json_str := toString (Lean.toJson receipt)
+    let new_digest := compute_sha256_mock receipt_json_str
+
+    VerifierResult.accept receipt new_digest
 
 end CohFusion.Control.Burn

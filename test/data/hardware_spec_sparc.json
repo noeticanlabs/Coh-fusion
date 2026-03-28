@@ -1,0 +1,8 @@
+{
+  "schema_id": "coh.hardware.v1",
+  "cert_id": "CERT-SPARC-2026-A",
+  "canon_profile_hash": "a1b2c3d4...",
+  "I_max": "50000.0",
+  "I_dot_max": "200.0",
+  "tau_sensor": "0.002"
+}

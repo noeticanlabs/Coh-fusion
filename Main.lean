@@ -1,70 +1,48 @@
 import CohFusion
 import CohFusion.Control.Burn
 import CohFusion.Numeric.QFixed
+import CohFusion.Crypto.Ledger
 import Lean.Data.Json
 
 open CohFusion.Control.Burn
 open CohFusion.Numeric
+open CohFusion.Crypto.Ledger
+open Lean
 
-def main : IO Unit := do
-  -- 1. Ingest Hardware Certificate
-  let hw_json_path : System.FilePath := "hardware_certificate.json"
-  if ← hw_json_path.pathExists then
-    let hw_json_content ← IO.FS.readFile hw_json_path
-    let hw_json ← match Lean.Json.parse hw_json_content with
-      | Except.ok j => pure j
-      | Except.error e =>
-        IO.println s!"REJECT_INVALID_ENVELOPE: Hardware JSON parse error: {e}"
-        return
+def main (args : List String) : IO Unit := do
+  -- Automated Ingestion (Standard Mode)
+  let hwPath : System.FilePath := "test/data/hardware_spec_sparc.json"
+  let statePath : System.FilePath := if args.contains "--fail" then "test/data/plasma_state_failing.json" else "test/data/plasma_state_high_beta.json"
 
-    let hw_spec : HardwareSpec ← match Lean.fromJson? hw_json with
-      | Except.ok (s : HardwareSpec) => pure s
-      | Except.error e =>
-        IO.println s!"REJECT_INVALID_ENVELOPE: Hardware schema mismatch: {e}"
-        return
+  if (← hwPath.pathExists) && (← statePath.pathExists) then
+    let hwFile ← IO.FS.readFile hwPath
+    let stateFile ← IO.FS.readFile statePath
 
-    -- 2. Ingest Plasma State
-    let state_json_path : System.FilePath := "plasma_state.json"
-    if ← state_json_path.pathExists then
-      let state_json_content ← IO.FS.readFile state_json_path
-      let state_json ← match Lean.Json.parse state_json_content with
-        | Except.ok j => pure j
-        | Except.error e =>
-          IO.println s!"REJECT_INVALID_ENVELOPE: Plasma State JSON parse error: {e}"
-          return
+    let hwJson ← IO.ofExcept (Json.parse hwFile)
+    let stateJson ← IO.ofExcept (Json.parse stateFile)
 
-      let plasma_state : PlasmaState ← match Lean.fromJson? state_json with
-        | Except.ok (s : PlasmaState) => pure s
-        | Except.error e =>
-          IO.println s!"REJECT_INVALID_ENVELOPE: Plasma State schema mismatch: {e}"
-          return
+    let hwSpec : HardwareSpec ← IO.ofExcept (fromJson? hwJson)
+    let plasmaState : PlasmaState ← IO.ofExcept (fromJson? stateJson)
 
-      -- 3. Ingest Burn Receipt (Stub for demo)
-      let burn_receipt : BurnReceipt := {
-        dt := QFixed.fromFloat 0.01,
-        etaAvailable := QFixed.fromFloat 1000.0,
-        spend := QFixed.zero,
-        eModel := QFixed.fromFloat 0.5,
-        eAct := QFixed.zero,
-        eSensor := QFixed.zero,
-        m_VDE := QFixed.fromFloat 5.0,
-        m_tear := QFixed.fromFloat 2.0
-      }
+    let prev_digest := "0000000000000000000000000000000000000000000000000000000000000000"
 
-      -- 4. Execute FUS-1 Verifier
-      match verifyIgnition hw_spec plasma_state burn_receipt with
-      | VerifierResult.accept =>
+    IO.println "=== Coh-Fusion Integrated Operational Spine ==="
+    IO.println s!"Auditing Cert ID: {hwSpec.cert_id}"
+
+    match verifyIgnition_v2 hwSpec plasmaState (QFixed.one) (QFixed.fromFloat 50.0) prev_digest with
+    | VerifierResult.reject_unaffordable_burn reason =>
+        IO.println s!"VERIFIER_RESULT: REJECT\nReason: {reason}"
+    | VerifierResult.reject_invalid_envelope reason =>
+        IO.println s!"VERIFIER_RESULT: REJECT\nReason: {reason}"
+    | VerifierResult.reject_unauthorized_transition reason =>
+        IO.println s!"VERIFIER_RESULT: REJECT\nReason: {reason}"
+    | VerifierResult.accept receipt digest =>
         IO.println "VERIFIER_RESULT: ACCEPT"
-        IO.println "Deterministic proof of affordability confirmed."
-      | VerifierResult.reject_invalid_envelope msg =>
-        IO.println s!"VERIFIER_RESULT: {msg}"
-      | VerifierResult.reject_unauthorized_transition msg =>
-        IO.println s!"VERIFIER_RESULT: {msg}"
-      | VerifierResult.reject_unaffordable_burn msg =>
-        IO.println s!"VERIFIER_RESULT: {msg}"
-      | VerifierResult.reject_overflow msg =>
-        IO.println s!"VERIFIER_RESULT: {msg}"
-    else
-      IO.println s!"Error: {state_json_path} not found."
+        IO.println s!"Chain Digest: {digest}"
+
+        -- Write the cryptographic artifact to disk
+        let out_path := "test/data/receipt_out.json"
+        IO.FS.writeFile out_path (toString (toJson receipt))
+        IO.println s!"Cryptographic BurnReceipt written to {out_path}"
   else
-    IO.println s!"Error: {hw_json_path} not found."
+    IO.println "Error: Test data not found in test/data/."

@@ -34,6 +34,12 @@ def compute_m_VDE (p : Params QFixed) (s : StateVDE QFixed) : QFixed :=
   let z_abs := if s.Z < QFixed.zero then QFixed.zero - s.Z else s.Z
   p.Z_wall - z_abs
 
+/-- Evaluates G_VDE(z) = M_z - Z_max * I_p.
+    Positive margin means safe; negative means wall-touch. -/
+def evaluate_margin (M_z : QFixed) (I_p : QFixed) (Z_max : QFixed) : QFixed :=
+  let G_VDE := M_z - (Z_max * I_p)
+  QFixed.zero - G_VDE
+
 /-- Disruption predicate: Physical wall touch condition.
     In the VDE case, this is usually defined by the vertical displacement exceeding the wall position. -/
 def DisruptedVDE [LE α] [Neg α] [Max α] (p : Params α) (s : StateVDE α) : Prop :=

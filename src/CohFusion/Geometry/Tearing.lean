@@ -28,6 +28,12 @@ def VgeomTear [Add α] [Mul α] [HPow α Nat α] (p : Params α) (s : StateTear 
 def compute_m_tear (p : Params QFixed) (s : StateTear QFixed) : QFixed :=
   p.W_crit - s.W
 
+/-- Evaluates G_tear(z) = Q_tilde - Q_crit.
+    Positive margin means safe; negative means reconnection. -/
+def evaluate_margin (Q_tilde : QFixed) (Q_crit : QFixed) : QFixed :=
+  let G_tear := Q_tilde - Q_crit
+  QFixed.zero - G_tear
+
 /-- Disruption predicate: Physical critical-width event. -/
 def DisruptedTear [LE α] (p : Params α) (s : StateTear α) : Prop :=
   s.W ≥ p.W_crit
