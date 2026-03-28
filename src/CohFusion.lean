@@ -40,3 +40,8 @@ import CohFusion.Continuum.OplaxProjection
 import CohFusion.Runtime.HashBoundedReceipt
 import CohFusion.Runtime.VerifierSemantics
 import CohFusion.Runtime.Bridge
+
+import CohFusion.Control.Theorems.C4B_DissipativeDescent
+import CohFusion.Control.Theorems.C4B_VDE
+import CohFusion.Control.Theorems.C4B_Tearing
+import CohFusion.Geometry.Theorems.C2C_Transversality
