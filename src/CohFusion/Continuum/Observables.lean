@@ -1,11 +1,8 @@
 namespace CohFusion.Continuum
 
-/-- Abstract observable map from plasma state to measurable quantities. -/
-/-- Z: observable mapping -/
-/-- W_hat: Fourier transform of observable -/
-structure Observables (α : Type) where
-  Z      : α  -- observable value
-  W_hat  : α  -- frequency domain representation
-  deriving Repr, DecidableEq
+/-- Abstract observable signatures for the PDE lift. -/
+structure Observables (State Obs : Type) where
+  Z     : State → Obs
+  W_hat : State → Obs
 
 end CohFusion.Continuum

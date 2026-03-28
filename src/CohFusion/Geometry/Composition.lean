@@ -9,11 +9,4 @@ structure StateFus (α : Type) where
   tear : Tearing.StateTear α
   deriving Repr, DecidableEq
 
-/-- Combined disruption state. -/
-inductive DisruptedFus
-  | vde_disrupted
-  | tear_disrupted
-  | both_disrupted
-  deriving Repr, DecidableEq
-
 end CohFusion.Geometry

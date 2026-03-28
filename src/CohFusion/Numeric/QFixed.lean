@@ -15,14 +15,14 @@ def zero : QFixed := { raw := 0, fracBits := 0 }
 
 /-- Addition with overflow check. -/
 def add (a b : QFixed) : Option QFixed :=
-  if h : a.fracBits = b.fracBits then
+  if a.fracBits = b.fracBits then
     some { raw := a.raw + b.raw, fracBits := a.fracBits }
   else
     none
 
 /-- Subtraction with overflow check. -/
 def sub (a b : QFixed) : Option QFixed :=
-  if h : a.fracBits = b.fracBits then
+  if a.fracBits = b.fracBits then
     some { raw := a.raw - b.raw, fracBits := a.fracBits }
   else
     none

@@ -2,8 +2,8 @@ namespace CohFusion.Geometry.Tearing
 
 /-- Tearing mode state for finite-dimensional geometry. -/
 structure StateTear (α : Type) where
-  W    : α   -- toroidal flux
-  vW   : α   -- toroidal flux velocity
+  W    : α   -- tearing width
+  vW   : α   -- tearing growth rate
   I_cd : α   -- current drive
   deriving Repr, DecidableEq
 

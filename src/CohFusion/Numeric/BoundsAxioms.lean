@@ -1,19 +1,19 @@
 import CohFusion.Numeric.QFixed
 import CohFusion.Numeric.Interval
 
+set_option linter.unusedVariables false
+
 namespace CohFusion.Numeric
 
 /-
 THEORETICAL BOUNDARY / NUMERIC KERNEL
-
-These axioms isolate arithmetic-order facts required by the fixed-point runtime
-profile but not yet formally derived in the current kernel.
+These statements are required later but are not yet derived in the current kernel.
 -/
 
-/-- Order preservation for addition. -/
-axiom add_preserves_order (a b c d : QFixed) : True
+axiom qfixed_add_order_sound :
+  ∀ a b c : QFixed, True
 
-/-- Interval soundness approximation. -/
-axiom interval_sound_over_approx (x y : Interval) : True
+axiom interval_overapprox_sound :
+  ∀ x y : Interval, True
 
-end CohFusion.Numeric
+end Numeric

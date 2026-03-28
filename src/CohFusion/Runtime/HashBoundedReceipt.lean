@@ -8,7 +8,7 @@ namespace CohFusion.Runtime
 structure HashBoundedReceipt (α : Type) where
   receipt : Core.MicroReceipt α
   digest  : Crypto.Digest
-  deriving Repr, DecidableEq
+  deriving DecidableEq
 
 /-- Compute digest from receipt using canonical serialization. -/
 def computeDigest [Crypto.Hasher] [Crypto.CanonicalSerialize (Core.MicroReceipt α)]

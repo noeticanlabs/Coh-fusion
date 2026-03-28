@@ -10,6 +10,15 @@ structure MicroReceipt (α : Type) where
   defectDeclared : α
   deriving Repr, DecidableEq
 
+/-- Slab receipt for a batch of steps (telescoping path). -/
+structure SlabReceipt (α : Type) where
+  statePrev      : State6 α
+  stateNext      : State6 α
+  totalSpend     : α
+  totalDefect    : α
+  stepCount      : Nat
+  deriving Repr, DecidableEq
+
 /-- Total spend across a trace. -/
 def totalSpend [OfNat α 0] [HAdd α α α] : List (MicroReceipt α) → α
   | []      => 0

@@ -2,8 +2,8 @@ namespace CohFusion.Geometry.VDE
 
 /-- VDE (Vertically-Distorted Element) state for finite-dimensional wedge geometry. -/
 structure StateVDE (α : Type) where
-  Z     : α  -- plasma current centroid
-  vZ    : α  -- plasma current velocity
+  Z     : α  -- vertical displacement
+  vZ    : α  -- vertical velocity
   I_act : α  -- active current
   deriving Repr, DecidableEq
 

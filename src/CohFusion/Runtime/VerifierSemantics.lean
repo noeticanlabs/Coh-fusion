@@ -4,8 +4,6 @@ import CohFusion.Core.Decision
 namespace CohFusion.Runtime
 
 /-- Pure total verifier semantics for runtime validation. -/
-
-/-- Verifier checks a micro-receipt and returns a decision. -/
 def verifyMicroReceipt
     (validate : Core.MicroReceipt α → Bool)
     (r : Core.MicroReceipt α) : Core.Decision :=
@@ -13,11 +11,13 @@ def verifyMicroReceipt
   else Core.Decision.reject Core.RejectCode.defectOutOfBounds
 
 /-- Micro-receipt soundness: receipt is well-formed. -/
-def microReceiptSound (r : Core.MicroReceipt α) : Prop :=
-  r.spendAuth ≥ 0 ∧ r.defectDeclared ≥ 0
+def microReceiptSound [LE α] [OfNat α 0] (r : Core.MicroReceipt α) : Prop :=
+  0 ≤ r.spendAuth ∧ 0 ≤ r.defectDeclared
 
-/-- Slab telescoping: trace accumulates correctly. -/
-def slabTelescoping (trace : List (Core.MicroReceipt α)) : Prop :=
-  List.Forall₂ (fun r1 r2 => r1.stateNext = r2.statePrev) trace
+/-- Adjacent linked: consecutive receipts have matching state. -/
+def adjacentLinked : List (Core.MicroReceipt α) → Prop
+  | [] => True
+  | [_] => True
+  | r1 :: r2 :: rs => r1.stateNext = r2.statePrev ∧ adjacentLinked (r2 :: rs)
 
 end CohFusion.Runtime

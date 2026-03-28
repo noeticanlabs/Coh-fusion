@@ -18,14 +18,20 @@ import CohFusion.Crypto.DigestStub
 import CohFusion.Crypto.Serialize
 import CohFusion.Crypto.Ledger
 
--- Future layers (available for import):
--- import CohFusion.Geometry.VDE
--- import CohFusion.Geometry.Tearing
--- import CohFusion.Geometry.Composition
--- import CohFusion.Control.Burn
--- import CohFusion.Continuum.Observables
--- import CohFusion.Continuum.LiftedSet
--- import CohFusion.Continuum.OplaxProjection
--- import CohFusion.Runtime.HashBoundedReceipt
--- import CohFusion.Runtime.VerifierSemantics
--- import CohFusion.Runtime.Bridge
+import CohFusion.Geometry.VDE
+import CohFusion.Geometry.Tearing
+import CohFusion.Geometry.Composition
+
+import CohFusion.Control.VDE_Abstract
+import CohFusion.Control.VDE_Quadratic
+import CohFusion.Control.Tearing_Quadratic
+import CohFusion.Control.Composition
+import CohFusion.Control.Burn
+
+import CohFusion.Continuum.Observables
+import CohFusion.Continuum.LiftedSet
+import CohFusion.Continuum.OplaxProjection
+
+import CohFusion.Runtime.HashBoundedReceipt
+import CohFusion.Runtime.VerifierSemantics
+import CohFusion.Runtime.Bridge

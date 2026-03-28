@@ -1,53 +1,72 @@
-import Mathlib.Data.Rat.Basic
 import CohFusion.Core.Decision
+
+set_option linter.unusedVariables false
 
 namespace CohFusion.Control.Burn
 
 open CohFusion.Core
 
+/-- Stub for Rational type until Mathlib is integrated. -/
+structure Rat where
+  val : Int
+  deriving Repr, DecidableEq
+
+instance : Add Rat := ⟨fun a b => ⟨a.val + b.val⟩⟩
+instance : Mul Rat := ⟨fun a b => ⟨a.val * b.val⟩⟩
+instance : LE Rat := ⟨fun a b => a.val ≤ b.val⟩
+instance : LT Rat := ⟨fun a b => a.val < b.val⟩
+instance : OfNat Rat n := ⟨⟨n⟩⟩
+
 /-- Plasma state for burn verification. -/
 structure PlasmaState where
-  beta        : ℚ  -- plasma beta
-  temperature : ℚ  -- ion temperature
-  density     : ℚ  -- ion density
+  beta        : Rat
+  temperature : Rat
+  density     : Rat
   deriving Repr, DecidableEq
 
 /-- Hardware specification limits. -/
 structure HardwareSpec where
-  I_max      : ℚ  -- maximum current
-  I_dot_max  : ℚ  -- maximum current derivative
-  tau_sensor : ℚ  -- sensor time constant
+  I_max      : Rat
+  I_dot_max  : Rat
+  tau_sensor : Rat
   deriving Repr, DecidableEq
 
 /-- Burn receipt for resource consumption tracking. -/
 structure BurnReceipt where
-  dt            : ℚ  -- burn duration
-  etaAvailable  : ℚ  -- available energy
-  spend         : ℚ  -- authorization spend
-  eModel        : ℚ  -- model error
-  eAct          : ℚ  -- actuator error
-  eSensor       : ℚ  -- sensor error
+  dt            : Rat
+  etaAvailable  : Rat
+  spend         : Rat
+  eModel        : Rat
+  eAct          : Rat
+  eSensor       : Rat
   deriving Repr, DecidableEq
 
 /-- Total burn defect = model + actuator + sensor errors. -/
-def totalBurnDefect (r : BurnReceipt) : ℚ :=
+def totalBurnDefect (r : BurnReceipt) : Rat :=
   r.eModel + r.eAct + r.eSensor
 
 /-- Lawson criterion: beta * density * temperature >= threshold. -/
 def satisfiesLawson (x : PlasmaState) : Prop :=
   x.beta * x.density * x.temperature ≥ 100
 
+instance (x : PlasmaState) : Decidable (satisfiesLawson x) :=
+  inferInstanceAs (Decidable (x.beta.val * x.density.val * x.temperature.val ≥ 100))
+
 /-- Affordability: available energy * dt > total defect. -/
 def isAffordable (r : BurnReceipt) : Prop :=
   r.etaAvailable * r.dt > totalBurnDefect r
 
+instance (r : BurnReceipt) : Decidable (isAffordable r) :=
+  inferInstanceAs (Decidable (r.etaAvailable.val * r.dt.val > (totalBurnDefect r).val))
+
 /-- Verify ignition: checks Lawson criterion and affordability. -/
 def verifyIgnition (x : PlasmaState) (r : BurnReceipt) : Decision :=
-  if ¬ satisfiesLawson x then
-    Decision.reject RejectCode.unauthorizedTransition
-  else if ¬ isAffordable r then
-    Decision.reject RejectCode.unaffordableBurn
+  if h : satisfiesLawson x then
+    if h' : isAffordable r then
+      Decision.accept
+    else
+      Decision.reject RejectCode.unaffordableBurn
   else
-    Decision.accept
+    Decision.reject RejectCode.unauthorizedTransition
 
 end CohFusion.Control.Burn
