@@ -12,16 +12,16 @@ structure Params (α : Type) where
   nu1     : α  -- first tearing coefficient
   nu2     : α  -- second tearing coefficient
   nu3     : α  -- third tearing coefficient
-  W_crit  : α  -- critical flux threshold
-  Theta_T : α  -- tearing threshold
+  W_crit  : α  -- critical flux threshold (physical disruption)
+  Theta_T : α  -- tearing threshold for public safety envelope
   deriving Repr
 
-/-- Geometric Tearing functional (Vgeom). -/
+/-- Geometric Tearing functional (Vgeom) - Public Risk Functional. -/
 def VgeomTear [Add α] [Mul α] [HPow α Nat α] (p : Params α) (s : StateTear α) : α :=
   p.nu1 * s.W^2 + p.nu2 * s.vW^2 + p.nu3 * s.I_cd^2
 
-/-- Disruption predicate: Tearing exceeds safe geometric threshold. -/
-def DisruptedTear [LE α] (p : Params α) (s : StateTear α) [Add α] [Mul α] [HPow α Nat α] : Prop :=
-  VgeomTear p s ≥ p.Theta_T
+/-- Disruption predicate: Physical critical-width event. -/
+def DisruptedTear [LE α] (p : Params α) (s : StateTear α) : Prop :=
+  s.W ≥ p.W_crit
 
 end CohFusion.Geometry.Tearing

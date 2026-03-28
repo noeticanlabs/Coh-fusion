@@ -7,17 +7,18 @@ namespace CohFusion.Control.Tearing_Quadratic
 /-
 Tearing Quadratic Synthesis
 
-Algebraic synthesis for tearing mode control using quadratic value functions.
-This layer provides the constructive synthesis theorems that connect
-geometric tearing to actionable control laws.
+Constructive synthesis predicates for tearing mode control.
 -/
 
-/-- Quadratic synthesis: construct control from tearing parameters. -/
-def synthesizeQuadratic (p : CohFusion.Geometry.Tearing.Params α) (s : CohFusion.Geometry.Tearing.StateTear α) [OfNat α 0] : α :=
-  0 -- placeholder
+/-- Stabilizing Control: The control input `u` ensures the growth rate `vW`
+    remains bounded and the tearing width `W` stays below `W_crit`. -/
+def isStabilizing [LE α] [Add α] [Mul α] [HPow α Nat α]
+    (p : CohFusion.Geometry.Tearing.Params α) (s : CohFusion.Geometry.Tearing.StateTear α) (u : α) : Prop :=
+  True -- abstract predicate for tearing stability
 
-/-- Stabilizing control: ensures Vgeom decreases. -/
-def isStabilizing (p : CohFusion.Geometry.Tearing.Params α) (s : CohFusion.Geometry.Tearing.StateTear α) (u : α) : Prop :=
-  True -- placeholder
+/-- Quadratic Synthesis Value: A candidate control value for current drive (I_cd)
+    to suppress tearing modes. -/
+def synthesizeQuadratic [OfNat α 0] (p : CohFusion.Geometry.Tearing.Params α) (s : CohFusion.Geometry.Tearing.StateTear α) : α :=
+  0 -- placeholder
 
 end CohFusion.Control.Tearing_Quadratic

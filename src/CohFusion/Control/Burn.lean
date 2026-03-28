@@ -1,3 +1,5 @@
+import Mathlib.Data.Rat.Defs
+import Mathlib.Order.Basic
 import CohFusion.Core.Decision
 
 set_option linter.unusedVariables false
@@ -5,17 +7,6 @@ set_option linter.unusedVariables false
 namespace CohFusion.Control.Burn
 
 open CohFusion.Core
-
-/-- Stub for Rational type until Mathlib is integrated. -/
-structure Rat where
-  val : Int
-  deriving Repr, DecidableEq
-
-instance : Add Rat := ⟨fun a b => ⟨a.val + b.val⟩⟩
-instance : Mul Rat := ⟨fun a b => ⟨a.val * b.val⟩⟩
-instance : LE Rat := ⟨fun a b => a.val ≤ b.val⟩
-instance : LT Rat := ⟨fun a b => a.val < b.val⟩
-instance : OfNat Rat n := ⟨⟨n⟩⟩
 
 /-- Plasma state for burn verification. -/
 structure PlasmaState where
@@ -47,22 +38,16 @@ def totalBurnDefect (r : BurnReceipt) : Rat :=
 
 /-- Lawson criterion: beta * density * temperature >= threshold. -/
 def satisfiesLawson (x : PlasmaState) : Prop :=
-  x.beta * x.density * x.temperature ≥ 100
-
-instance (x : PlasmaState) : Decidable (satisfiesLawson x) :=
-  inferInstanceAs (Decidable (x.beta.val * x.density.val * x.temperature.val ≥ 100))
+  x.beta * x.density * x.temperature ≥ (100 : Rat)
 
 /-- Affordability: available energy * dt > total defect. -/
 def isAffordable (r : BurnReceipt) : Prop :=
   r.etaAvailable * r.dt > totalBurnDefect r
 
-instance (r : BurnReceipt) : Decidable (isAffordable r) :=
-  inferInstanceAs (Decidable (r.etaAvailable.val * r.dt.val > (totalBurnDefect r).val))
-
 /-- Verify ignition: checks Lawson criterion and affordability. -/
 def verifyIgnition (x : PlasmaState) (r : BurnReceipt) : Decision :=
-  if h : satisfiesLawson x then
-    if h' : isAffordable r then
+  if h : x.beta * x.density * x.temperature ≥ (100 : Rat) then
+    if h' : r.etaAvailable * r.dt > totalBurnDefect r then
       Decision.accept
     else
       Decision.reject RejectCode.unaffordableBurn

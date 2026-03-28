@@ -14,15 +14,16 @@ structure Params (α : Type) where
   omega3     : α  -- third frequency component
   Z_wall     : α  -- wall position
   delta_safe : α  -- safe delta margin
-  Theta_V    : α  -- VDE threshold
+  Theta_V    : α  -- VDE threshold for public safety envelope
   deriving Repr
 
-/-- Geometric VDE functional (Vgeom). -/
+/-- Geometric VDE functional (Vgeom) - Public Risk Functional. -/
 def VgeomVDE [Add α] [Mul α] [HPow α Nat α] (p : Params α) (s : StateVDE α) : α :=
   p.omega1 * s.Z^2 + p.omega2 * s.vZ^2 + p.omega3 * s.I_act^2
 
-/-- Disruption predicate: VDE exceeds safe geometric threshold. -/
-def DisruptedVDE [LE α] (p : Params α) (s : StateVDE α) [Add α] [Mul α] [HPow α Nat α] : Prop :=
-  VgeomVDE p s ≥ p.Theta_V
+/-- Disruption predicate: Physical wall touch condition.
+    In the VDE case, this is usually defined by the vertical displacement exceeding the wall position. -/
+def DisruptedVDE [LE α] [Neg α] [Max α] (p : Params α) (s : StateVDE α) : Prop :=
+  (max s.Z (-s.Z)) ≥ p.Z_wall
 
 end CohFusion.Geometry.VDE

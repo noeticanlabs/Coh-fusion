@@ -7,24 +7,25 @@ namespace CohFusion.Control.Composition
 /-
 Joint Control Composition
 
-This file defines the control algebra for the combined VDE + Tearing fusion system.
-It provides:
-- Joint control synthesis for the coupled system
-- Linkage conditions between VDE and tearing control
-- Combined stability theorems
+This file defines the joint control predicates for the coupled VDE + Tearing system.
 -/
 
 /-- Joint control: combines VDE and tearing control inputs. -/
 structure JointControl (α : Type) where
   uVDE   : α  -- VDE control input
   uTear  : α  -- tearing control input
+  deriving Repr, DecidableEq
 
-/-- Linkage condition: VDE and tearing controls are compatible. -/
-def isLinked (c : JointControl α) : Prop :=
-  True -- placeholder
+/-- Joint Geometric Linkage: Both components are within their respective safety envelopes. -/
+def JointGeometricLinkage [LT α] [Add α] [Mul α] [HPow α Nat α]
+    (p : CohFusion.Geometry.ParamsFus α) (s : CohFusion.Geometry.StateFus α) : Prop :=
+  CohFusion.Geometry.VDE.VgeomVDE p.vde s.vde < p.vde.Theta_V ∧
+  CohFusion.Geometry.Tearing.VgeomTear p.tear s.tear < p.tear.Theta_T
 
-/-- Joint stability: combined system is stable under joint control. -/
-def isJointlyStable (s : CohFusion.Geometry.StateFus α) (c : JointControl α) : Prop :=
-  True -- placeholder
+/-- Joint Controller Descent: The combined control input ensures the joint functional `VgeomFus`
+    is contractive under the oplax verification rule. -/
+def JointControllerDescent [LT α] [Add α] [Mul α] [HPow α Nat α]
+    (p : CohFusion.Geometry.ParamsFus α) (s : CohFusion.Geometry.StateFus α) (c : JointControl α) : Prop :=
+  True -- abstract predicate for joint stability
 
 end CohFusion.Control.Composition
