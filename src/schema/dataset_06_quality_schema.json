@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dataset 06: Data Quality, Uncertainty, and Defect Channels",
+  "description": "Defect pricing for verifier. Maps to defect components for verification decision.",
+  "type": "object",
+  "properties": {
+    "shot_id": {
+      "type": "string",
+      "description": "Unique discharge identifier"
+    },
+    "t_ms": {
+      "type": "number",
+      "description": "Common timeline (milliseconds)"
+    },
+    "magnetic_data_freshness_ms": {
+      "type": "number",
+      "description": "Age of magnetic-control inputs (ms)"
+    },
+    "profile_data_freshness_ms": {
+      "type": "number",
+      "description": "Age of profile summaries (ms)"
+    },
+    "missing_core_signal_count": {
+      "type": "integer",
+      "description": "Count of missing required inputs"
+    },
+    "stale_signal_count": {
+      "type": "integer",
+      "description": "Count of stale inputs"
+    },
+    "equilibrium_residual_norm": {
+      "type": "number",
+      "description": "Reconstruction residual (normalized)"
+    },
+    "sensor_confidence_score": {
+      "type": "number",
+      "description": "Observation confidence (0-1)"
+    },
+    "estimator_confidence_score": {
+      "type": "number",
+      "description": "State-estimator confidence (0-1)"
+    },
+    "model_defect_est": {
+      "type": "number",
+      "description": "Model-side defect estimate (normalized)"
+    },
+    "actuation_defect_est": {
+      "type": "number",
+      "description": "Actuation-side defect estimate (normalized)"
+    },
+    "sensing_defect_est": {
+      "type": "number",
+      "description": "Sensor/observation defect estimate (normalized)"
+    },
+    "total_defect_est": {
+      "type": "number",
+      "description": "Total declared defect (normalized)"
+    },
+    "data_quality_status": {
+      "type": "string",
+      "enum": ["good", "warning", "bad"],
+      "description": "Data quality status"
+    },
+    "time_sync_error_ms": {
+      "type": "number",
+      "description": "Cross-diagnostic sync error (ms)"
+    },
+    "confidence_floor_triggered": {
+      "type": "boolean",
+      "description": "Confidence floor flag"
+    },
+    "estimator_version": {
+      "type": "string",
+      "description": "Estimator version"
+    },
+    "predictor_version": {
+      "type": "string",
+      "description": "Predictor version"
+    },
+    "calibration_regime_id": {
+      "type": "string",
+      "description": "Calibration/certificate regime ID"
+    }
+  },
+  "required": ["shot_id", "t_ms", "total_defect_est", "data_quality_status"]
+}

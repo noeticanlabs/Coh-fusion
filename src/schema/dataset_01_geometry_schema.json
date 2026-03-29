@@ -1,0 +1,118 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dataset 01: Geometry, Position, and Shape",
+  "description": "Axisymmetric magnetic-control state for real-time tokamak control. Maps to State6.Z, State6.vZ.",
+  "type": "object",
+  "properties": {
+    "shot_id": {
+      "type": "string",
+      "description": "Unique discharge identifier"
+    },
+    "t_ms": {
+      "type": "number",
+      "description": "Common control clock (milliseconds)"
+    },
+    "ip_ma": {
+      "type": "number",
+      "description": "Plasma current in megaamperes"
+    },
+    "bt_t": {
+      "type": "number",
+      "description": "Toroidal magnetic field in tesla"
+    },
+    "r_geo_m": {
+      "type": "number",
+      "description": "Geometric major-radius estimate in meters"
+    },
+    "z_geo_m": {
+      "type": "number",
+      "description": "Geometric vertical position estimate in meters"
+    },
+    "r_axis_m": {
+      "type": "number",
+      "description": "Magnetic-axis radial position in meters"
+    },
+    "z_axis_m": {
+      "type": "number",
+      "description": "Magnetic-axis vertical position in meters"
+    },
+    "kappa": {
+      "type": "number",
+      "description": "Plasma elongation (unitless)"
+    },
+    "delta_upper": {
+      "type": "number",
+      "description": "Upper triangularity (unitless)"
+    },
+    "delta_lower": {
+      "type": "number",
+      "description": "Lower triangularity (unitless)"
+    },
+    "area_m2": {
+      "type": "number",
+      "description": "Plasma cross-sectional area in square meters"
+    },
+    "volume_m3": {
+      "type": "number",
+      "description": "Plasma volume in cubic meters"
+    },
+    "q95": {
+      "type": "number",
+      "description": "Edge safety factor proxy (unitless)"
+    },
+    "li_3": {
+      "type": "number",
+      "description": "Internal inductance proxy (unitless)"
+    },
+    "beta_n": {
+      "type": "number",
+      "description": "Normalized beta (unitless)"
+    },
+    "shape_error_rms": {
+      "type": "number",
+      "description": "RMS deviation from target boundary"
+    },
+    "vertical_margin": {
+      "type": "number",
+      "description": "Vertical stability margin surrogate (normalized)"
+    },
+    "equilibrium_status": {
+      "type": "string",
+      "enum": ["good", "warning", "bad"],
+      "description": "Equilibrium reconstruction status"
+    },
+    "x_point_r_m": {
+      "type": "number",
+      "description": "X-point radial coordinate in meters"
+    },
+    "x_point_z_m": {
+      "type": "number",
+      "description": "X-point vertical coordinate in meters"
+    },
+    "strike_point_in_r_m": {
+      "type": "number",
+      "description": "Inner strike point radial coordinate in meters"
+    },
+    "strike_point_out_r_m": {
+      "type": "number",
+      "description": "Outer strike point radial coordinate in meters"
+    },
+    "boundary_gap_min_m": {
+      "type": "number",
+      "description": "Minimum wall/boundary gap in meters"
+    },
+    "wall_clearance_min_m": {
+      "type": "number",
+      "description": "Minimum wall clearance in meters"
+    },
+    "locked_mode_amp_g": {
+      "type": "number",
+      "description": "Locked-mode amplitude in gauss"
+    },
+    "halo_current_ka": {
+      "type": "number",
+      "description": "Halo-current estimate in kiloamperes"
+    }
+  },
+  "required": ["shot_id", "t_ms", "ip_ma", "r_axis_m", "z_axis_m", "equilibrium_status"]
+}

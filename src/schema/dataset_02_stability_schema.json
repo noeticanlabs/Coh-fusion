@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dataset 02: Stability and MHD Risk",
+  "description": "Instability-risk state for supervisory control and verifier. Maps to State6.W, State6.vW.",
+  "type": "object",
+  "properties": {
+    "shot_id": {
+      "type": "string",
+      "description": "Unique discharge identifier"
+    },
+    "t_ms": {
+      "type": "number",
+      "description": "Common control clock (milliseconds)"
+    },
+    "q95": {
+      "type": "number",
+      "description": "Edge safety factor proxy (unitless)"
+    },
+    "li_3": {
+      "type": "number",
+      "description": "Internal inductance proxy (unitless)"
+    },
+    "beta_n": {
+      "type": "number",
+      "description": "Normalized beta (unitless)"
+    },
+    "density_frac_greenwald": {
+      "type": "number",
+      "description": "Density / Greenwald limit proxy (unitless)"
+    },
+    "locked_mode_amp": {
+      "type": "number",
+      "description": "Locked-mode feature amplitude (machine units)"
+    },
+    "mhd_activity_rms": {
+      "type": "number",
+      "description": "Aggregate MHD activity (machine units)"
+    },
+    "mirnov_bandpower_low": {
+      "type": "number",
+      "description": "Low-frequency Mirnov band power (machine units)"
+    },
+    "mirnov_bandpower_mid": {
+      "type": "number",
+      "description": "Mid-frequency Mirnov band power (machine units)"
+    },
+    "mirnov_bandpower_high": {
+      "type": "number",
+      "description": "High-frequency Mirnov band power (machine units)"
+    },
+    "tearing_risk_score": {
+      "type": "number",
+      "description": "Tearing risk surrogate (0-1)"
+    },
+    "disruption_risk_score": {
+      "type": "number",
+      "description": "Disruption risk surrogate (0-1)"
+    },
+    "vertical_event_risk_score": {
+      "type": "number",
+      "description": "VDE risk surrogate (0-1)"
+    },
+    "radiated_power_frac": {
+      "type": "number",
+      "description": "Radiated power fraction (unitless)"
+    },
+    "confinement_mode": {
+      "type": "string",
+      "enum": ["L", "H", "I", "unknown"],
+      "description": "Confinement mode"
+    },
+    "rotation_core_krad_s": {
+      "type": "number",
+      "description": "Core rotation summary (krad/s)"
+    },
+    "rotation_edge_krad_s": {
+      "type": "number",
+      "description": "Edge rotation summary (krad/s)"
+    },
+    "ntm_amplitude": {
+      "type": "number",
+      "description": "NTM indicator amplitude (machine units)"
+    },
+    "island_width_est_m": {
+      "type": "number",
+      "description": "Estimated island width (meters)"
+    },
+    "elm_activity_score": {
+      "type": "number",
+      "description": "ELM activity summary (0-1)"
+    },
+    "dwdt_proxy": {
+      "type": "number",
+      "description": "Tearing growth-rate proxy (m/s or normalized)"
+    },
+    "runaway_risk_score": {
+      "type": "number",
+      "description": "Runaway-electron risk (0-1)"
+    }
+  },
+  "required": ["shot_id", "t_ms", "q95", "beta_n"]
+}

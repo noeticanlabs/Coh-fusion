@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dataset 04: Actuator Commands, Availability, and Health",
+  "description": "Authority accounting and actuation health. Maps to State6.I_act, State6.I_cd.",
+  "type": "object",
+  "properties": {
+    "shot_id": {
+      "type": "string",
+      "description": "Unique discharge identifier"
+    },
+    "t_ms": {
+      "type": "number",
+      "description": "Controller clock (milliseconds)"
+    },
+    "pf_req_vector": {
+      "anyOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "type": "number" } }
+      ],
+      "description": "Requested PF/shaping command vector (machine units)"
+    },
+    "pf_meas_vector": {
+      "anyOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "type": "number" } }
+      ],
+      "description": "Achieved PF/shaping vector (machine units)"
+    },
+    "pf_slew_margin": {
+      "type": "number",
+      "description": "Remaining PF slew authority (normalized)"
+    },
+    "pf_saturation_flag": {
+      "type": "boolean",
+      "description": "PF saturation indicator"
+    },
+    "fuel_req": {
+      "type": "number",
+      "description": "Requested fueling (machine units)"
+    },
+    "fuel_meas": {
+      "type": "number",
+      "description": "Achieved fueling (machine units)"
+    },
+    "heat_req_mw": {
+      "type": "number",
+      "description": "Requested auxiliary heating (MW)"
+    },
+    "heat_meas_mw": {
+      "type": "number",
+      "description": "Achieved auxiliary heating (MW)"
+    },
+    "current_drive_req_mw": {
+      "type": "number",
+      "description": "Requested current-drive power (MW)"
+    },
+    "current_drive_meas_mw": {
+      "type": "number",
+      "description": "Achieved current-drive power (MW)"
+    },
+    "actuator_delay_ms": {
+      "type": "number",
+      "description": "Effective latency estimate (ms)"
+    },
+    "actuator_health_status": {
+      "type": "string",
+      "enum": ["good", "degraded", "unavailable"],
+      "description": "Actuator health status"
+    },
+    "nbi_available": {
+      "type": "boolean",
+      "description": "NBI availability"
+    },
+    "ech_available": {
+      "type": "boolean",
+      "description": "ECH availability"
+    },
+    "icrh_available": {
+      "type": "boolean",
+      "description": "ICRH availability"
+    },
+    "gas_valve_available": {
+      "type": "boolean",
+      "description": "Fueling availability"
+    },
+    "current_drive_slew_margin": {
+      "type": "number",
+      "description": "Remaining CD authority (normalized)"
+    },
+    "heating_slew_margin": {
+      "type": "number",
+      "description": "Remaining heating authority (normalized)"
+    },
+    "allocation_mode": {
+      "type": "string",
+      "description": "Actuator allocator mode"
+    }
+  },
+  "required": ["shot_id", "t_ms", "pf_req_vector", "actuator_health_status"]
+}

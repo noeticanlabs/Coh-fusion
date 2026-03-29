@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dataset 05: Event Labels and Prediction Horizons",
+  "description": "Supervised labels for training/validation of risk predictors. Training/evaluation only, not real-time control.",
+  "type": "object",
+  "properties": {
+    "shot_id": {
+      "type": "string",
+      "description": "Unique discharge identifier"
+    },
+    "t_ms": {
+      "type": "number",
+      "description": "Common timeline (milliseconds)"
+    },
+    "safe_state_label": {
+      "type": "boolean",
+      "description": "Operationally safe under current policy"
+    },
+    "disruption_in_10ms": {
+      "type": "boolean",
+      "description": "Disruption within 10ms horizon label"
+    },
+    "disruption_in_50ms": {
+      "type": "boolean",
+      "description": "Disruption within 50ms horizon label"
+    },
+    "disruption_in_100ms": {
+      "type": "boolean",
+      "description": "Disruption within 100ms horizon label"
+    },
+    "rampdown_start_in_50ms": {
+      "type": "boolean",
+      "description": "Rampdown onset label"
+    },
+    "locked_mode_onset_in_20ms": {
+      "type": "boolean",
+      "description": "Locked-mode onset label"
+    },
+    "tearing_onset_in_20ms": {
+      "type": "boolean",
+      "description": "Tearing onset label"
+    },
+    "vde_onset_in_10ms": {
+      "type": "boolean",
+      "description": "VDE onset label"
+    },
+    "time_to_disruption_ms": {
+      "type": "number",
+      "description": "Remaining time to disruption (ms)"
+    },
+    "time_to_rampdown_ms": {
+      "type": "number",
+      "description": "Remaining time to rampdown (ms)"
+    },
+    "event_source": {
+      "type": "string",
+      "enum": ["human", "rule-based", "benchmark"],
+      "description": "Label source"
+    },
+    "label_confidence": {
+      "type": "number",
+      "description": "Label confidence (0-1)"
+    },
+    "false_alarm_cost_weight": {
+      "type": "number",
+      "description": "Policy weight for false alarms"
+    },
+    "missed_alarm_cost_weight": {
+      "type": "number",
+      "description": "Policy weight for missed alarms"
+    },
+    "operating_phase": {
+      "type": "string",
+      "enum": ["startup", "flat_top", "transition", "rampdown", "shutdown"],
+      "description": "Operating phase"
+    }
+  },
+  "required": ["shot_id", "t_ms", "safe_state_label"]
+}

@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Dataset 03: Kinetic and Profile Summary",
+  "description": "Compact plasma-state summaries for supervisory control",
+  "type": "object",
+  "properties": {
+    "shot_id": {
+      "type": "string",
+      "description": "Unique discharge identifier"
+    },
+    "t_ms": {
+      "type": "number",
+      "description": "Supervisory clock (milliseconds)"
+    },
+    "ne_line_1e19_m3": {
+      "type": "number",
+      "description": "Line-averaged electron density (1e19 m^-3)"
+    },
+    "te_core_kev": {
+      "type": "number",
+      "description": "Core electron temperature (keV)"
+    },
+    "te_edge_kev": {
+      "type": "number",
+      "description": "Edge electron temperature (keV)"
+    },
+    "ti_core_kev": {
+      "type": "number",
+      "description": "Core ion temperature (keV)"
+    },
+    "stored_energy_mj": {
+      "type": "number",
+      "description": "Stored plasma energy (MJ)"
+    },
+    "pressure_norm": {
+      "type": "number",
+      "description": "Pressure summary (normalized)"
+    },
+    "current_profile_peaking": {
+      "type": "number",
+      "description": "Current profile shape factor (unitless)"
+    },
+    "density_peaking": {
+      "type": "number",
+      "description": "Density profile shape factor (unitless)"
+    },
+    "temperature_peaking": {
+      "type": "number",
+      "description": "Temperature profile shape factor (unitless)"
+    },
+    "confinement_quality_score": {
+      "type": "number",
+      "description": "Confinement quality summary (0-1 or normalized)"
+    },
+    "pedestal_height_kev": {
+      "type": "number",
+      "description": "Pedestal proxy (keV)"
+    },
+    "pedestal_width_norm": {
+      "type": "number",
+      "description": "Pedestal width (normalized)"
+    },
+    "bootstrap_fraction": {
+      "type": "number",
+      "description": "Bootstrap-current fraction (unitless)"
+    },
+    "zeff": {
+      "type": "number",
+      "description": "Effective charge (unitless)"
+    },
+    "impurity_radiation_score": {
+      "type": "number",
+      "description": "Impurity/radiation burden (0-1)"
+    },
+    "fast_ion_pressure_norm": {
+      "type": "number",
+      "description": "Fast-ion pressure summary (normalized)"
+    },
+    "runaway_seed_indicator": {
+      "type": "number",
+      "description": "Runaway seed proxy (0-1)"
+    }
+  },
+  "required": ["shot_id", "t_ms", "ne_line_1e19_m3", "te_core_kev", "stored_energy_mj"]
+}

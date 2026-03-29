@@ -1,19 +1,23 @@
+import Mathlib.Algebra.Ring.Rat
+import Mathlib.Algebra.Order.Field.Rat
+import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Ring
 import CohFusion.Control.Theorems.C4B_DissipativeDescent
 import CohFusion.Control.VDE_Abstract
 import CohFusion.Control.VDE_Quadratic
 import CohFusion.Geometry.VDECore
-import CohFusion.Numeric.QFixed
 
 /-!
-# C-4B VDE Specialization: Dissipative Descent for VDE Control
+# C-4B VDE Rational Shadow Specialization: Dissipative Descent for VDE Control
 
 This file specializes the generic C-4B kernel theorem to the VDE (Vertically-Distorted
-Element) control system. It provides the concrete binding between:
+Element) control system using rational shadow models (α = ℚ).
 
-- The abstract `ControlParams` structure
-- The VDE state and parameter types
-- The quadratic control synthesis (`synthesizeQuadratic`)
-- The Lyapunov function (`VgeomVDE`)
+## Scalar Choice
+
+This file operates over the rational numbers ℚ for full algebraic tractability.
+The VDE control system is defined polymorphically over any type with the appropriate
+algebraic structure, so we can instantiate it with ℚ for the theorem layer.
 
 ## Key Theorems
 
@@ -21,11 +25,11 @@ Element) control system. It provides the concrete binding between:
 2. `vde_coercive_spend_implies_geometric_contraction` - geometric bound
 3. `vde_telescoping_dissipative_bound` - multi-step receipt
 
-## Concrete Type Mapping
+## Concrete Type Mapping (Rational Shadow)
 
 The specialization maps:
-- `State` → `VDE.StateVDE QFixed`
-- `Control` → `QFixed` (scalar control input)
+- `State` → `VDE.StateVDE ℚ`
+- `Control` → `ℚ` (scalar control input)
 - `Disturbance` → `VDE_Disturbance` (d_Z, d_I pair)
 - `V` → `VgeomVDE p`
 - `spend` → `u*u*dt` (quadratic control effort)
@@ -48,9 +52,10 @@ exact vde_defect_dominates_spend_implies_strict_descent p η s d hdesc hdom
 namespace CohFusion.Control.Theorems
 
 /-!
-## VDE Control Parameters as ControlParams
+## VDE Control Parameters as ControlParams (Rational Shadow)
 
-We instantiate the generic `ControlParams` with VDE-specific types and functions.
+We instantiate the generic `ControlParams` with VDE-specific types and functions
+over ℚ. This is a rational shadow model - the actual executable uses QFixed.
 -/
 
 /-- VDE disturbance: pair of Z and I_act disturbances. -/
@@ -58,15 +63,15 @@ structure VDE_Disturbance (α : Type) where
   d_Z  : α
   d_I  : α
 
-/-- Convert VDE params + gains to generic ControlParams. -/
+/-- Convert VDE params + gains to generic ControlParams over ℚ. -/
 def vdeControlParams
-    (p : CohFusion.Geometry.VDE.Params QFixed)
-    (g : VDE_Quadratic.VDEControlGains QFixed)
-    (dt : QFixed) :
+    (p : CohFusion.Geometry.VDE.Params ℚ)
+    (g : VDE_Quadratic.VDEControlGains ℚ)
+    (dt : ℚ) :
     ControlParams
-      (CohFusion.Geometry.VDE.StateVDE QFixed)
-      QFixed
-      (VDE_Disturbance QFixed) :=
+      (CohFusion.Geometry.VDE.StateVDE ℚ)
+      ℚ
+      (VDE_Disturbance ℚ) :=
   { step := λ x u d =>
       VDE_Abstract.vdeStep p x dt u d.d_Z d.d_I,
     kappa := λ x => VDE_Quadratic.synthesizeQuadratic g x,
@@ -76,19 +81,19 @@ def vdeControlParams
     }
 
 /-!
-## C-4B VDE Theorem: Strict Descent Under Defect Dominance
+## C-4B VDE Theorem (Rational): Strict Descent Under Defect Dominance
 
-This is the concrete VDE instance of the generic kernel theorem.
+This is the concrete VDE instance of the generic kernel theorem over ℚ.
 The spend is `u*u*dt` and the defect is the squared disturbance norm.
 -/
 
 theorem vde_defect_dominates_spend_implies_strict_descent
-    (p : CohFusion.Geometry.VDE.Params QFixed)
-    (g : VDE_Quadratic.VDEControlGains QFixed)
-    (dt : QFixed)
-    (η : QFixed)
-    (s : CohFusion.Geometry.VDE.StateVDE QFixed)
-    (d : VDE_Disturbance QFixed)
+    (p : CohFusion.Geometry.VDE.Params ℚ)
+    (g : VDE_Quadratic.VDEControlGains ℚ)
+    (dt : ℚ)
+    (η : ℚ)
+    (s : CohFusion.Geometry.VDE.StateVDE ℚ)
+    (d : VDE_Disturbance ℚ)
     (hdesc : VDE_Abstract.ControllerDescent p dt (d.d_Z * d.d_Z + d.d_I * d.d_I)
                 s (VDE_Abstract.vdeStep p s dt (VDE_Quadratic.synthesizeQuadratic g s) d.d_Z d.d_I)
                 (VDE_Quadratic.synthesizeQuadratic g s))
@@ -98,9 +103,6 @@ theorem vde_defect_dominates_spend_implies_strict_descent
 begin
   -- Construct the ControlParams instance
   let cp := vdeControlParams p g dt,
-
-  -- The generic theorem requires OplaxDescent and DefectDominated
-  -- We need to show these match the VDE definitions
 
   -- Unfold OplaxDescent for VDE:
   -- V(s⁺) ≤ V(s) - u*u*dt + defect
@@ -116,17 +118,17 @@ begin
 end
 
 /-!
-## C-4B VDE Corollary: Geometric Contraction
+## C-4B VDE Corollary (Rational): Geometric Contraction
 
 If the control authority satisfies a coercivity bound, we get geometric contraction.
 -/
 
 theorem vde_coercive_spend_implies_geometric_contraction
-    (p : CohFusion.Geometry.VDE.Params QFixed)
-    (g : VDE_Quadratic.VDEControlGains QFixed)
-    (dt η c : QFixed)
-    (s : CohFusion.Geometry.VDE.StateVDE QFixed)
-    (d : VDE_Disturbance QFixed)
+    (p : CohFusion.Geometry.VDE.Params ℚ)
+    (g : VDE_Quadratic.VDEControlGains ℚ)
+    (dt η c : ℚ)
+    (s : CohFusion.Geometry.VDE.StateVDE ℚ)
+    (d : VDE_Disturbance ℚ)
     (hdesc : VDE_Abstract.ControllerDescent p dt (d.d_Z * d.d_Z + d.d_I * d.d_I)
                 s (VDE_Abstract.vdeStep p s dt (VDE_Quadratic.synthesizeQuadratic g s) d.d_Z d.d_I)
                 (VDE_Quadratic.synthesizeQuadratic g s))
@@ -141,31 +143,31 @@ begin
 end
 
 /-!
-## C-4B VDE Multi-Step: Telescoping Receipt
+## C-4B VDE Multi-Step: Telescoping Receipt (Rational)
 
 For a trajectory of n steps, the Lyapunov values telescope with the discounted spends.
 -/
 
-/-- VDE trajectory: apply VDE step repeatedly. -/
+/-- VDE trajectory: apply VDE step repeatedly over ℚ. -/
 def vdeTrajectory
-    (p : CohFusion.Geometry.VDE.Params QFixed)
-    (g : VDE_Quadratic.VDEControlGains QFixed)
-    (dt : QFixed)
-    (s : CohFusion.Geometry.VDE.StateVDE QFixed)
-    (ds : List (VDE_Disturbance QFixed)) :
-    CohFusion.Geometry.VDE.StateVDE QFixed :=
+    (p : CohFusion.Geometry.VDE.Params ℚ)
+    (g : VDE_Quadratic.VDEControlGains ℚ)
+    (dt : ℚ)
+    (s : CohFusion.Geometry.VDE.StateVDE ℚ)
+    (ds : List (VDE_Disturbance ℚ)) :
+    CohFusion.Geometry.VDE.StateVDE ℚ :=
   match ds with
   | []      => s
   | d :: ds => vdeTrajectory p g dt
       (VDE_Abstract.vdeStep p s dt (VDE_Quadratic.synthesizeQuadratic g s) d.d_Z d.d_I) ds
 
-/-- VDE discounted spend sum. -/
+/-- VDE discounted spend sum over ℚ. -/
 def vdeDiscountedSpendSum
-    (p : CohFusion.Geometry.VDE.Params QFixed)
-    (g : VDE_Quadratic.VDEControlGains QFixed)
-    (dt η : QFixed)
-    (s : CohFusion.Geometry.VDE.StateVDE QFixed)
-    (ds : List (VDE_Disturbance QFixed)) : QFixed :=
+    (p : CohFusion.Geometry.VDE.Params ℚ)
+    (g : VDE_Quadratic.VDEControlGains ℚ)
+    (dt η : ℚ)
+    (s : CohFusion.Geometry.VDE.StateVDE ℚ)
+    (ds : List (VDE_Disturbance ℚ)) : ℚ :=
   match ds with
   | []      => 0
   | d :: ds =>
@@ -173,13 +175,13 @@ def vdeDiscountedSpendSum
       + vdeDiscountedSpendSum p g dt η
         (VDE_Abstract.vdeStep p s dt (VDE_Quadratic.synthesizeQuadratic g s) d.d_Z d.d_I) ds
 
-/-- VDE telescoping receipt theorem. -/
+/-- VDE telescoping receipt theorem over ℚ. -/
 theorem vde_telescoping_dissipative_bound
-    (p : CohFusion.Geometry.VDE.Params QFixed)
-    (g : VDE_Quadratic.VDEControlGains QFixed)
-    (dt η : QFixed)
-    (s : CohFusion.Geometry.VDE.StateVDE QFixed)
-    (ds : List (VDE_Disturbance QFixed))
+    (p : CohFusion.Geometry.VDE.Params ℚ)
+    (g : VDE_Quadratic.VDEControlGains ℚ)
+    (dt η : ℚ)
+    (s : CohFusion.Geometry.VDE.StateVDE ℚ)
+    (ds : List (VDE_Disturbance ℚ))
     (hstep : ∀ s d,
       let u := VDE_Quadratic.synthesizeQuadratic g s
       let sNext := VDE_Abstract.vdeStep p s dt u d.d_Z d.d_I

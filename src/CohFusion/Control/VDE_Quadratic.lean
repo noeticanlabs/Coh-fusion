@@ -1,4 +1,5 @@
 import CohFusion.Geometry.VDECore
+import Mathlib.Algebra.Ring.Rat
 
 set_option linter.unusedVariables false
 
@@ -8,6 +9,9 @@ namespace CohFusion.Control.VDE_Quadratic
 VDE Quadratic Synthesis
 
 Constructive synthesis predicates for VDE control using quadratic value functions.
+
+All functions are polymorphic over any type α with sufficient algebraic structure:
+Neg, Add, Mul, HPow, LT, and order relations.
 -/
 
 /-- VDE control gains for linear state-feedback. -/
@@ -19,7 +23,7 @@ structure VDEControlGains (α : Type) where
   deriving Repr
 
 /-- Saturating clamp for symmetric actuator limits. -/
-def clampSymm (u uMax : α) : α :=
+def clampSymm [LT α] [Neg α] (u uMax : α) : α :=
   if u > uMax then uMax
   else if u < -uMax then -uMax
   else u
@@ -27,14 +31,14 @@ def clampSymm (u uMax : α) : α :=
 /-- Linear state-feedback control law.
     u = sat(-K_Z * Z - K_v * v_Z - K_I * I_act)
     Derived from quadratic form with tuning constants. -/
-def synthesizeQuadratic
+def synthesizeQuadratic [Add α] [Neg α] [Mul α]
     (g : VDEControlGains α)
     (s : CohFusion.Geometry.VDE.StateVDE α) : α :=
   clampSymm (-(g.kZ * s.Z + g.kv * s.vZ + g.kI * s.I_act)) g.uMax
 
 /-- Stabilizing Control: Check one-step Lyapunov descent.
     Uses the abstract ControllerDescent predicate from VDE_Abstract. -/
-def isStabilizing
+def isStabilizing [Add α] [Sub α] [Mul α] [HPow α Nat α] [LT α] [LE α]
     (p : CohFusion.Geometry.VDE.Params α)
     (dt defect : α)
     (s sNext : CohFusion.Geometry.VDE.StateVDE α)

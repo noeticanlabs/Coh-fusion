@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FusionJoinedFrame",
+  "description": "Master joined frame combining all 6 tokamak fusion datasets. Primary join key: shot_id + t_ms.",
+  "type": "object",
+  "properties": {
+    "shot_id": {
+      "type": "string",
+      "description": "Unique discharge identifier - primary join key"
+    },
+    "t_ms": {
+      "type": "number",
+      "description": "Common control clock - primary join key (ms)"
+    },
+    "regime_id": {
+      "type": "string",
+      "description": "Operating regime identifier"
+    },
+    "controller_cycle_id": {
+      "type": "integer",
+      "description": "Sequential control cycle counter"
+    },
+    "predictor_version": {
+      "type": "string",
+      "description": "Version of risk prediction model"
+    },
+    "estimator_version": {
+      "type": "string",
+      "description": "Version of state estimation model"
+    },
+    "certificate_id": {
+      "type": "string",
+      "description": "Reference to governing HardwareCertificate"
+    },
+    "geometry": {
+      "$ref": "dataset_01_geometry_schema.json",
+      "description": "Dataset 01: Geometry, Position, and Shape"
+    },
+    "stability": {
+      "$ref": "dataset_02_stability_schema.json",
+      "description": "Dataset 02: Stability and MHD Risk"
+    },
+    "kinetic": {
+      "$ref": "dataset_03_kinetic_schema.json",
+      "description": "Dataset 03: Kinetic and Profile Summary"
+    },
+    "actuator": {
+      "$ref": "dataset_04_actuator_schema.json",
+      "description": "Dataset 04: Actuator Commands, Availability, and Health"
+    },
+    "labels": {
+      "$ref": "dataset_05_labels_schema.json",
+      "description": "Dataset 05: Event Labels and Prediction Horizons"
+    },
+    "quality": {
+      "$ref": "dataset_06_quality_schema.json",
+      "description": "Dataset 06: Data Quality, Uncertainty, and Defect Channels"
+    }
+  },
+  "required": ["shot_id", "t_ms"],
+  "anyOf": [
+    { "required": ["geometry"] },
+    { "required": ["stability"] },
+    { "required": ["actuator"] },
+    { "required": ["quality"] }
+  ]
+}

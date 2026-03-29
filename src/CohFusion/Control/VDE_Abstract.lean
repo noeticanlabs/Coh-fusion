@@ -1,4 +1,6 @@
 import CohFusion.Geometry.VDECore
+import Mathlib.Algebra.Ring.Rat
+import Mathlib.Algebra.Order.Field.Rat
 
 set_option linter.unusedVariables false
 
@@ -9,10 +11,13 @@ VDE Abstract Control Layer
 
 This file defines the abstract control predicates for the VDE (Vertically-Distorted Element).
 These predicates link the physical/geometric VDE state to control synthesis requirements.
+
+All functions are polymorphic over any type α with sufficient algebraic structure:
+Add, Sub, Mul, Neg, HPow, and order relations.
 -/
 
 /-- Geometric Linkage: The control state is consistent with the public safety envelope. -/
-def GeometricLinkage [LT α] [Add α] [Mul α] [HPow α Nat α]
+def GeometricLinkage [Add α] [Mul α] [HPow α Nat α] [LT α]
     (p : CohFusion.Geometry.VDE.Params α) (s : CohFusion.Geometry.VDE.StateVDE α) : Prop :=
   CohFusion.Geometry.VDE.VgeomVDE p s < p.Theta_V
 
@@ -22,6 +27,7 @@ def GeometricLinkage [LT α] [Add α] [Mul α] [HPow α Nat α]
     I_act^{+} = I_act + dt * (-a_I * I_act + u + d_I)
 -/
 def vdeStep
+    [Add α] [Sub α] [Mul α] [Neg α]
     (p : CohFusion.Geometry.VDE.Params α)
     (s : CohFusion.Geometry.VDE.StateVDE α)
     (dt : α)
@@ -35,7 +41,7 @@ def vdeStep
 /-- Controller Descent: Real inequality for VgeomVDE contraction.
     V(s_next) ≤ V(s) - u*u*dt + defect
     This is the Lyapunov descent condition for the VDE. -/
-def ControllerDescent [LT α] [Add α] [Sub α] [Mul α] [HPow α Nat α]
+def ControllerDescent [Add α] [Sub α] [Mul α] [HPow α Nat α] [LT α] [LE α]
     (p : CohFusion.Geometry.VDE.Params α)
     (dt defect : α)
     (s sNext : CohFusion.Geometry.VDE.StateVDE α)
@@ -46,7 +52,7 @@ def ControllerDescent [LT α] [Add α] [Sub α] [Mul α] [HPow α Nat α]
 /-- Defect Dominance: STRICT authority dominance.
     The control authority must strictly dominate the defect (|u| > |defect|).
     FIXED: was missing authority parameter, now takes authority directly. -/
-def DefectDominance (authority defect : α) : Prop :=
+def DefectDominance [LT α] (authority defect : α) : Prop :=
   defect < authority
 
 end CohFusion.Control.VDE_Abstract
