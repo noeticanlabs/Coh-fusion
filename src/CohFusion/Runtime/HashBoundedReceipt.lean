@@ -4,15 +4,17 @@ import CohFusion.Crypto.Serialize
 
 namespace CohFusion.Runtime
 
-/-- Hash-bounded receipt: binds receipt to digest/serialization constraints. -/
+/-- Hash-bounded receipt: binds receipt to digest/serialization constraints.
+Deprecated: Use FusionReceipt with digest field instead. -/
+@[deprecated "Use FusionReceipt with digest field instead" ]
 structure HashBoundedReceipt (α : Type) where
-  receipt : CohFusion.Core.MicroReceipt α
+  receipt : CohFusion.Core.FusionReceipt α
   digest  : CohFusion.Crypto.Digest
   deriving DecidableEq
 
 /-- Compute digest from receipt using canonical serialization. -/
-def computeDigest [CohFusion.Crypto.Hasher] [CohFusion.Crypto.CanonicalSerialize (CohFusion.Core.MicroReceipt α)]
-    (r : CohFusion.Core.MicroReceipt α) : CohFusion.Crypto.Digest :=
+def computeDigest [CohFusion.Crypto.Hasher] [CohFusion.Crypto.CanonicalSerialize (CohFusion.Core.FusionReceipt α)]
+    (r : CohFusion.Core.FusionReceipt α) : CohFusion.Crypto.Digest :=
   CohFusion.Crypto.Hasher.hashBytes (CohFusion.Crypto.CanonicalSerialize.toCanonicalBytes r)
 
 end CohFusion.Runtime

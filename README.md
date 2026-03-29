@@ -1,308 +1,249 @@
-# Coh-Fusion: Governance Architecture for Fusion Reactor Control
+# Coh-Fusion: Wedge-First Governance Architecture for Fusion Reactor Control
 
-## Project Identity
+**STATUS: canonical**
 
-Coh-Fusion is a formal governance architecture for safety-critical fusion reactor control systems. The project mechanizes a typed tower of correctness guarantees spanning:
+## What This Is
 
-- **Algebraic closure** of the control algebra (R₀–R₄ morphological bridge)
-- **Geometric embedding** of tokamak plasma states
-- **Continuum physically justified** dynamics with rigorous boundary handling
+Coh-Fusion is a **governance architecture** for safety-critical fusion reactor control systems. It provides a typed verification kernel that:
 
-This is **not** a claim of complete plasma physics mastery. It is a governance architecture that formalizes the **control-theoretic core** of reactor operation while explicitly deferring unresolved continuum physics questions to the specification layer.
+1. **Accepts or rejects control decisions** based on formal evidence
+2. **Emits receipts** capturing the rationale for traceability
+3. **Validates hardware certificates** as authority gates
+4. **Freezes behavior** to known-good states for deployment
+
+This is **not** a full tokamak control stack. It is the **software governance layer** that sits between control computation and plant execution, providing formal assurance over the decision pipeline without controlling the physics directly.
+
+---
+
+## What is NOT Claimed
+
+| Claim | Status |
+|-------|--------|
+| **Full tokamak control stack** | ❌ Not claimed — This is a governance verifier, not a plasma control system |
+| **Direct hardware certification** | ❌ Not claimed — Hardware certification is an external process; the verifier validates certificates |
+| **Proof of actuator correctness** | ❌ Not claimed — Actuator execution is outside the wedge boundary |
+| **Proof of raw sensor truth** | ❌ Not claimed — Sensor accuracy is assumed, not proved |
+
+For what is explicitly excluded, see [`docs/EXCLUDED_SURFACES.md`](docs/EXCLUDED_SURFACES.md).
+
+---
 
 ## Epistemic Posture
 
-| Layer | Status |
-|-------|--------|
-| Algebraic core (R₀–R₄) | Mechanized in Lean 4 |
-| Geometric embedding | In progress |
-| Control theoretic guarantees | Theorem-targeted |
-| Continuum PDE boundary | Specified but not mechanized |
-| Plasma physics completeness | **Out of scope** — deferred to monograph |
+| Layer | Status | Scope |
+|-------|--------|-------|
+| Kernel | ✅ canonical | Decision verification |
+| Numeric | ✅ canonical | Deterministic arithmetic only |
+| Control (theorems) | ⚠️ partial | Under stated assumptions |
+| Geometry | ✅ canonical | State embedding |
+| Continuum | ❌ excluded | PDE dynamics outside wedge |
+| Plasma physics | ❌ excluded | Full physics out of scope |
 
-The project maintains a strict separation:
-- `docs/` = theory/specification (may reference unresolved physics)
-- `lean4/` = formalization (algebraically closed core only)
-- `src/` = runtime verifier (no physics inheritance)
+---
 
-## Typed Tower Overview
+## Wedge Boundary
+
+The **wedge** is the minimal buildable surface that provides governance:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    GOVERNANCE LAYER                         │
-│  (FUS-1 Affordability Doctrine / Model Exclusion Surface)  │
-├─────────────────────────────────────────────────────────────┤
-│                   HARDWARE CERTIFICATION                   │
-│     (Observable Sufficiency / Burn Receipt / Gate Spec)    │
-├─────────────────────────────────────────────────────────────┤
-│                    THEOREM TARGETS                          │
-│  C-4B │ C-2C │ C-5 │ C-1C(b) │ Morphological Bridge       │
-├─────────────────────────────────────────────────────────────┤
-│                   CONTINUUM LAYER                           │
-│     (Open Boundary / Tearing / Transversality Tracks)      │
-├─────────────────────────────────────────────────────────────┤
-│                   GEOMETRY LAYER                            │
-│         (Tokamak Embedding / Phase Space Metrics)          │
-├─────────────────────────────────────────────────────────────┤
-│                     CORE LAYER                              │
-│    (R₀–R₄ Morphisms / Control Algebra / Ledger Rigidity)  │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                        WEDGE BOUNDARY                              │
+├─────────────────────────────────────────────────────────────────────┤
+│  INPUT         │  CONTROL      │  CERTIFICATE   │  KERNEL         │
+│  ─────        │  ──────       │  ──────────     │  ──────         │
+│  State        │  Hazard      │  Authority     │  Decision      │
+│  params       │  evidence    │  gate         │  verify        │
+│               │              │               │                │
+│  ←───         │  ───→        │  ───→          │  ────          │
+│               │              │               │                │
+│  OBSERVABLES  │  PROOFS      │  EVIDENCE      │  RECEIPTS      │
+│  ←───         │  ───→        │  ───→          │  ───→          │
+│               │              │               │                │
+└─────────────────────────────────────────────────────────────────────┘
 ```
+
+**Inside the wedge:**
+- Decision logic (state → decision)
+- Numeric arithmetic (deterministic)
+- Certificate validation (formal verification)
+- Receipt generation (traceability)
+- Replay verification (audit)
+
+**Outside the wedge:**
+- Plant dynamics (PDEs)
+- Sensor truth (hardware assumption)
+- Actuator execution (firmware)
+- Calibration metadata (external)
+
+---
+
+## Layer Ownership
+
+Each layer has explicit ownership:
+
+| Layer | Owner | What It Guarantees |
+|-------|-------|-------------------|
+| **kernel** | legality | Decision acceptance/rejection is legal |
+| **numeric** | determinism | Arithmetic is exact, no floating-point |
+| **control** | hazard evidence | Risk functional computation is correct |
+| **certificate** | authority gating | Certificate validates before use |
+| **receipt** | evidence/replay | Receipt enables audit trail |
+| **tests** | behavioral freeze | Tests pin known-good behavior |
+
+For full architecture documentation, see [`docs/architecture.md`](docs/architecture.md).
+
+---
+
+## Quick Start
+
+```bash
+# Build the verifier
+lake build CohFusion
+
+# Run the CLI
+lean --run Main.lean
+
+# Run tests
+lake test
+```
+
+---
+
+## Decision Flow
+
+```
+state_prev ──→ CONTROL ──→ hazard_evidence
+              │                    │
+              │                    ▼
+              │              CERTIFICATE (validate)
+              │                    │
+              ▼                    ▼
+         state_next ←────── KERNEL (verify)
+                              │
+                              ▼
+                          RECEIPT (emit)
+```
+
+For detailed flow, see [`docs/kernel_flow.md`](docs/kernel_flow.md).
+
+---
+
+## Kernel Gates
+
+The verifier checks in sequence:
+
+| Gate | Check | Fail Mode |
+|------|-------|----------|
+| 1 | `receipt.statePrev = prevState` | UNAUTHORIZED_TRANSITION |
+| 2 | `VgeomFus(params, nextState) > threshold` | THRESHOLD_EXCEEDED |
+| 3 | `defectDeclared > defectLimit` | DEFECT_OUT_OF_BOUNDS |
+
+**Boundary**: Open safe set (`>` rejects, `≤` accepts)
+
+For the full contract, see [`docs/kernel_contract.md`](docs/kernel_contract.md).
+
+---
+
+## Canonical Test Suite
+
+| Area | Tests | Status |
+|------|-------|--------|
+| Kernel accept | 1 | ✅ |
+| Kernel reject (4 paths) | 4 | ✅ |
+| Kernel boundary | 1 | ✅ |
+| Certificate validation | 6 | ✅ |
+| Golden vectors | 3 | ✅ |
+| Regressions | 2 | ✅ |
+
+For coverage matrix, see [`docs/test_matrix.md`](docs/test_matrix.md).
+
+---
 
 ## Repository Structure
 
 ```
 .
 ├── README.md                    # This file
-├── lakefile.lean               # Lean 4 package definition
-├── lean-toolchain              # Lean version pin
-├── CohFusion.lean              # Root import surface (entry point)
-├── Main.lean                   # CLI entrypoint
-├── docs/                       # Theory & specification layer
-│   ├── 00_status_matrix.md     # Proof / mechanization / gap status
-│   ├── 06a_r0_r4_morphological_bridge.md
-│   ├── 06b_c4b_theorem_target.md
-│   ├── 06c_c2c_transversality_track.md
-│   ├── 06d_c5_obstruction_dominance.md
-│   ├── 06e_c1cb_tearing_comparison.md
-│   ├── 07a_hardware_certification.md
-│   ├── 07b_observable_stress_tests.md
-│   ├── 07c_fus1_affordability.md
-│   ├── 10_model_exclusion_surface.md
+├── lakefile.lean                 # Lean 4 package
+├── lean-toolchain                # Lean version
+├── Main.lean                     # CLI entry
+├── src/CohFusion.lean            # Root import
+├── docs/                         # Theory & spec
+│   ├── architecture.md           # Layer ownership
+│   ├── build_status.md           # File inventory
+│   ├── proof_status.md           # Theorem status
+│   ├── test_matrix.md           # Coverage
+│   ├── KERNEL_SCOPE.md          # Kernel checks
+│   ├── EXCLUDED_SURFACES.md      # What's outside
+│   ├── ASSUMPTIONS_AND_DEPENDENCIES.md
+│   ├── OPEN_RISKS.md             # Known risks
+│   ├── REVIEWER_GUIDE.md        # Reading order
 │   └── appendices/
-│       ├── A_notation_ledger.md
-│       ├── B_dependency_dag.md
-│       ├── C_gap_ledger.md
-│       └── D_canonical_receipt_encoding.md
-├── src/                        # Runtime implementation layer
-│   └── CohFusion/
-│       ├── Base/
-│       │   ├── CohObject.lean
-│       │   ├── Obligations.lean
-│       │   └── VerifierResult.lean
-│       ├── Crypto/
-│       │   ├── Digest.lean
-│       │   ├── Ledger.lean
-│       │   └── Serialize.lean
-│       └── Numeric/
-│           ├── Interval.lean
-│           ├── Policy.lean
-│           ├── QFixed.lean
-│           └── Serialize.lean
-└── lean4/                     # [Reserved] Future Lean source split
+└── src/CohFusion/               # Implementation
+    ├── Core/                    # State, Receipt, Decision
+    ├── Numeric/                # QFixed, Policy, Interval
+    ├── Geometry/               # VDE, Tearing, Composition
+    ├── Control/                # Hazard computation
+    ├── Runtime/                # Verifier kernel
+    ├── Product/                # HardwareCertificate
+    ├── Schema/                 # Frame adapters
+    └── Crypto/                 # Digest, Ledger
 ```
-
-## Layer Separation Rationale
-
-### Why this matters
-
-The **epistemic airlock** between layers is deliberate:
-
-1. **PDE/open-boundary material does not contaminate the verifier kernel** — The runtime verifier (`src/`) must not inherit unresolved plasma physics assumptions. It operates on formally verified algebraic guarantees only.
-
-2. **Runtime does not prove continuum physics** — The `src/` layer implements the **software contract** of the governance architecture. It validates receipts, checks certificates, and enforces policy — it does not claim to prove plasma stability.
-
-3. **Lean formalization stays algebraically closed** — The `lean4/` (or `src/`) Lean files formalize the **control-theoretic core** that is mathematically closed. Unresolved PDE questions are documented in `docs/` but not imported into the formalization.
-
-## Building the Project
-
-```bash
-# Install dependencies
-lake env
-
-# Build the Lean library
-lake build CohFusion
-
-# Run the CLI entrypoint
-lean --run Main.lean
-```
-
-## Status Summary
-
-| Component | Status |
-|-----------|--------|
-| Core control algebra (R₀–R₄) | Mechanized |
-| Ledger / receipt infrastructure | Implemented |
-| Numeric fixed-point arithmetic | Implemented |
-| Geometric embedding | In progress |
-| Theorem targets (C-4B, C-2C, C-5) | Specified |
-| Hardware certification layer | Specified |
-| Runtime verifier kernel | Partial |
-
-See [`docs/00_status_matrix.md`](docs/00_status_matrix.md) for the full gap ledger.
-
-## Governance Claim
-
-This project demonstrates that **formal methods can govern fusion control** without requiring complete plasma physics formalization. The architecture achieves:
-
-- **Algebraic closure** of the control layer
-- **Runtime verification** of hardware certificates
-- **Explicit scope boundaries** (what is and is not proved)
-
-This is a **governance architecture**, not a plasma physics theorem. The typed tower proves what it claims to prove, and documents what it deliberately excludes.
 
 ---
 
-## Current Build Status
+## Proof Status
 
-### Canonical Wedge Path
+The project maintains formal proofs over ℚ (rational numbers):
 
-The following areas form the buildable, verified core:
+| Theorem | Status |
+|---------|--------|
+| C-4B Dissipative Descent | ⚠️ partial — under one-step descent hypothesis |
+| C-2C Transversality | ✅ proved |
+| C-5 Obstruction Dominance | ✅ proved |
+| C-1C(b) Tearing | ✅ proved |
 
-| Area | Status | Notes |
-|------|--------|-------|
-| Core (State, Receipt, Decision, Obligations) | ✅ canonical | No proof holes |
-| Numeric (QFixed, Policy, Interval) | ✅ canonical | Deterministic arithmetic |
-| Geometry (VDE, Tearing, Composition) | ✅ canonical | Core failure modes |
-| Runtime (VerifierSemantics, Bridge) | ✅ canonical | RV kernel |
-| Product (HardwareCertificate, CommercialWedge) | ✅ canonical | Physical authorization |
-| Schema (Frames, Adapters) | ✅ canonical | Data ingestion |
-| Crypto (Digest, Serialize, Ledger) | ✅ canonical | Excludes dev stub |
-
-### Draft Areas
-
-| Area | Status | Notes |
-|------|--------|-------|
-| Continuum (Observables, LiftedSet, OplaxProjection) | ⚠️ draft | PDE lift placeholders |
-| Control/VDE_Quadratic | ⚠️ draft | Theorem pending proof |
-
-### Excluded Areas
-
-| Area | Status | Notes |
-|------|--------|-------|
-| Crypto/DigestStub | ❌ excluded | Dev-only stub, not for production |
-
-### Build Truth
-
-- **No `sorry` in canonical files** — All proof holes resolved or marked as draft
-- **No unresolved identifiers** — All imports resolved
-- **No stale module references** — Current architecture matches file contents
-
-For detailed file-by-file status, see [`docs/build_status.md`](docs/build_status.md).
-For what the build includes/excludes, see [`docs/build_scope.md`](docs/build_scope.md).
-
-### Canonical Verifier Path
-
-The Coh-Fusion verifier has exactly **one canonical kernel**:
-
-| Component | File | Notes |
-|-----------|------|-------|
-| **Kernel** | `Runtime/VerifierSemanticsQFixed.lean` | QFixed implementation (canonical) |
-| Generic wrapper | `Runtime/VerifierSemantics.lean` | Template (draft) |
-| Product wrapper | `Product/CommercialWedge.lean` | Calls kernel |
-| Bridge | `Runtime/Bridge.lean` | Calls kernel |
-
-**Kernel Gates (in order):**
-
-1. **State Link** — `receipt.statePrev = prevState`
-2. **Threshold** — `VgeomFus(params, nextState) > threshold` → reject
-3. **Defect** — `defectDeclared > defectLimit` → reject  
-4. **Oplax** — `V(next) > V(prev) - (1-γ)*spend + defect` → reject
-
-- **Open safe set**: `>` triggers rejection, `≤` accepts
-- **Order**: Gates checked in fixed sequence, first failure wins
-
-For detailed contract, see [`docs/kernel_contract.md`](docs/kernel_contract.md).
-For operational flow, see [`docs/kernel_flow.md`](docs/kernel_flow.md).
-
-### Canonical Numeric Domain
-
-The verifier uses **QFixed** (Q64.64 fixed-point) as the canonical numeric domain:
-
-| Property | Value |
-|----------|-------|
-| Format | Fixed-point (2^64 scale) |
-| Internal | Lean `Int` (arbitrary precision) |
-| Comparison | Exact integer comparison |
-| Float | **Banned** from kernel |
-| Parse | `fromDecimalString` — exact decimal |
-
-**Boundary Semantics**: Open safe set (`>` rejects, `≤` accepts)
-
-For detailed numeric contract, see [`docs/numeric_contract.md`](docs/numeric_contract.md).
-For numeric flow, see [`docs/numeric_flow.md`](docs/numeric_flow.md).
-
-### Receipt and Replay Model
-
-The verifier emits canonical **MicroReceipt** for each transition:
-
-| Component | File | Notes |
-|-----------|------|-------|
-| **Receipt** | `Core/Receipt.lean` | `MicroReceipt` (canonical) |
-| **Replay** | `Runtime/VerifierSemanticsQFixed.lean` | Recomputes decision |
-| **Trace** | `Runtime/Bridge.lean` | Sequential check |
-
-**Receipt binds**: statePrev → stateNext → spend → defect
-
-**Replay**: Reconstruct decision from receipt + kernel policy. Decision must match.
-
-**Proof scope**: What the receipt proves — decision legality, state linkage, numeric evidence. What it does NOT prove — sensor accuracy, physical plant state.
-
-For detailed receipt contract, see [`docs/receipt_contract.md`](docs/receipt_contract.md).
-For receipt flow, see [`docs/receipt_flow.md`](docs/receipt_flow.md).
-
-### Control Layer
-
-The control layer computes **canonical hazard evidence** for the kernel:
-
-| Channel | Risk Functional | Threshold | Margin |
-|---------|-----------------|------------|--------|
-| VDE | `ω1·Z² + ω2·vZ² + ω3·I_act²` | `Theta_V` | `Theta_V - risk` |
-| Tearing | `ν1·W² + ν2·vW² + ν3·I_cd²` | `Theta_T` | `Theta_T - risk` |
-
-**Composition**: Conjunctive — both channels must be safe
-**Margin convention**: Positive = safe slack, zero = boundary, negative = breach
-
-Control does NOT make final legality decisions — it provides evidence to the kernel.
-
-For detailed control contract, see [`docs/control_contract.md`](docs/control_contract.md).
-For control flow, see [`docs/control_flow.md`](docs/control_flow.md).
-
-### Hardware Certificate Path
-
-The hardware certificate is a **first-class authority gate** in the typed tower:
-
-| Component | Purpose |
-|------------|----------|
-| `HardwareCertificate` | Typed certificate structure with performance limits |
-| `validateCertificate` | Full validation pipeline |
-| `Certificate in Wedge` | Embedded as authority gate |
-
-**Certificate Validation Gates**:
-
-| Check | Function | Failure |
-|-------|----------|--------|
-| Expiry | `isExpired` | CERT_EXPIRED |
-| Signature | `hasValidSignatureFormat` | INVALID_SIGNATURE_FORMAT |
-| Root of Trust | `hasRootOfTrust` | MISSING_ROOT_OF_TRUST |
-| Regime Match | `matchesRegime` | REGIME_MISMATCH |
-
-**Certificate Flow**: Hardware provision → Issuance → Regime binding → Validation → Verifier consumption
-
-For detailed certificate contract, see [`docs/certificate_contract.md`](docs/certificate_contract.md).
-For certificate flow, see [`docs/certificate_flow.md`](docs/certificate_flow.md).
-
-### Canonical Test Suite
-
-The canonical test suite freezes the wedge's operational behavior:
-
-| Area | Coverage |
-|------|----------|
-| Kernel | 5 tests (accept + 4 reject paths + boundary) |
-| Certificates | 6 tests (validation pipeline) |
-| Vectors | 3 golden cases (accept, hazard, authority) |
-| Regressions | 2 tests (QFixed parse, matchesRegime) |
-
-**Test Structure**:
-
-- `tests/kernel/` — Kernel decision tests
-- `tests/certificates/` — Certificate validation tests
-- `tests/vectors/` — Golden end-to-end vectors (JSON)
-- `tests/regressions/` — Bug fix regression tests
-
-For detailed test contract, see [`docs/test_contract.md`](docs/test_contract.md).
-For test coverage matrix, see [`docs/test_matrix.md`](docs/test_matrix.md).
+For full theorem inventory, see [`docs/proof_status.md`](docs/proof_status.md).
 
 ---
 
-*For the full technical specification, see the monograph and associated gap ledger in `docs/appendices/`.*
+## Build Status
+
+| Status | Count |
+|--------|-------|
+| canonical | 28 |
+| draft | 4 |
+| excluded | 1 |
+
+For file-by-file status, see [`docs/build_status.md`](docs/build_status.md).
+
+---
+
+## What the Kernel Does NOT Check
+
+The kernel **assumes** (does not verify):
+
+- Observable truth (sensors are honest)
+- Calibration accuracy (metadata is correct)
+- Actuator execution (firmware runs correctly)
+- Plant dynamics (PDEs are correct)
+
+For the full assumption ledger, see [`docs/ASSUMPTIONS_AND_DEPENDENCIES.md`](docs/ASSUMPTIONS_AND_DEPENDENCIES.md).
+
+---
+
+## Open Risks
+
+| Category | Risk |
+|----------|------|
+| **Technical** | Control theorem gaps (C-4B partial) |
+| **Technical** | Regime matching verification |
+| **Technical** | Observable sufficiency |
+| **Product** | Deployment integration |
+| **Product** | Explainability for operators |
+
+For full risk inventory, see [`docs/OPEN_RISKS.md`](docs/OPEN_RISKS.md).
+
+---
+
+*This is a governance architecture, not a plasma physics theorem. It proves what it claims to prove and documents what it excludes.*

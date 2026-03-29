@@ -1,5 +1,7 @@
 # Model Exclusion Surface
 
+**STATUS: canonical** (superseded by `EXCLUDED_SURFACES.md`)
+
 ## Overview
 
 The model exclusion surface explicitly documents what the Coh-Fusion architecture does **not** claim to prove or govern. This is critical for maintaining epistemic honesty about the scope of formal methods in fusion control.

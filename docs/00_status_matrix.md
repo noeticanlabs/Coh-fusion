@@ -1,5 +1,7 @@
 # Status Matrix
 
+**STATUS: draft** (see `build_status.md` and `proof_status.md` for canonical status)
+
 ## Overview
 
 This document provides a snapshot of the current state of the Coh-Fusion project, tracking:

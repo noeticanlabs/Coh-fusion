@@ -1,5 +1,7 @@
 # Build Scope
 
+**STATUS: canonical** (see `build_status.md` for detailed file inventory)
+
 ## Purpose
 
 This document describes what the canonical build includes, what it excludes, and why.

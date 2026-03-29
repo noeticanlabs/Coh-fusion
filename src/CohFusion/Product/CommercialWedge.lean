@@ -121,26 +121,29 @@ def evaluateRisk (wedge : CommercialWedge) (state : State6 QFixed) : QFixed :=
 def isAffordable (_wedge : CommercialWedge) (defect authority : QFixed) : Bool :=
   defect < authority
 
-/-- Build a MicroReceipt from wedge inputs. -/
-def buildMicroReceipt
+/-- Build a FusionReceipt from wedge inputs.
+Now uses unified FusionReceipt type. -/
+def buildFusionReceipt
     (wedge : CommercialWedge)
-    (expectedState nextState : ObservableChannels)
-    (spend defect : QFixed) : CohFusion.Core.MicroReceipt QFixed :=
-  { statePrev      := toState6 expectedState
-  , stateNext    := toState6 nextState
-  , spendAuth    := spend
-  , defectDeclared := defect }
+    (expectedState nextState : ObservableChannel)
+    (spend defect : QFixed) : CohFusion.Core.FusionReceipt QFixed :=
+  let micro : CohFusion.Core.MicroReceipt QFixed :=
+    { statePrev      := toState6 expectedState
+    , stateNext    := toState6 nextState
+    , spendAuth    := spend
+    , defectDeclared := defect }
+  CohFusion.Core.FusionReceipt.ofMicroReceipt "commercial_wedge" 1 micro
 
 /-- End-to-end product runtime path:
-  construct a micro-receipt, call the deterministic verifier, and map to wedge decision.
+  construct a fusion receipt, call the deterministic verifier, and map to wedge decision.
   Now uses verifyRV_QFixed (the real kernel) instead of simplified logic.
 -/
 def evaluateTransition
     (wedge : CommercialWedge)
     (expectedState nextState : ObservableChannels)
     (spend defect : QFixed) : WedgeDecision :=
-  -- Build the micro-receipt
-  let r := buildMicroReceipt wedge expectedState nextState spend defect
+  -- Build the fusion receipt
+  let r := buildFusionReceipt wedge expectedState nextState spend defect
 
   -- Call the real verifier kernel
   let expectedState6 := toState6 expectedState

@@ -12,13 +12,14 @@ open CohFusion.Core
 open CohFusion.Geometry
 
 /-- RV (Runtime Verifier) Kernel for Coh-Fusion.
-    This implements the deterministic transition check for a single micro-receipt. -/
+    This implements the deterministic transition check for a single fusion receipt.
+    Now uses unified FusionReceipt type. -/
 def verifyRV
     {α : Type}
     [Ring α] [LinearOrder α]
     [Add α] [Sub α] [Mul α] [HPow α Nat α] [OfNat α 1]
     (p : ParamsFus α)
-    (r : MicroReceipt α)
+    (r : FusionReceipt α)
     (expectedState : State6 α)
     (threshold : α)
     (defectLimit : α)
@@ -45,8 +46,25 @@ def verifyRV
   else
     Decision.accept
 
+/-- Helper: Convert MicroReceipt to FusionReceipt for kernel compatibility.
+Deprecated: Use FusionReceipt directly. -/
+@[deprecated "Use FusionReceipt directly in verifyRV" ]
+def verifyRV_fromMicroReceipt
+    {α : Type}
+    [Ring α] [LinearOrder α]
+    [Add α] [Sub α] [Mul α] [HPow α Nat α] [OfNat α 1]
+    [Inhabited Digest]
+    (p : ParamsFus α)
+    (micro : MicroReceipt α)
+    (expectedState : State6 α)
+    (threshold : α)
+    (defectLimit : α)
+    (gamma : α) : Decision :=
+  let fusion := FusionReceipt.ofMicroReceipt "legacy_micro" 1 micro
+  verifyRV p fusion expectedState threshold defectLimit gamma
+
 /-- Soundness of a trace: all receipts in the trace are sequentially linked. -/
-def traceLinked {α : Type} [DecidableEq α] : List (MicroReceipt α) → Bool
+def traceLinked {α : Type} [DecidableEq α] : List (FusionReceipt α) → Bool
   | [] => true
   | [_] => true
   | r1 :: r2 :: rs => (r1.stateNext = r2.statePrev) && traceLinked (r2 :: rs)
