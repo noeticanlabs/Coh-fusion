@@ -32,12 +32,14 @@ For what is explicitly excluded, see [`docs/EXCLUDED_SURFACES.md`](docs/EXCLUDED
 
 | Layer | Status | Scope |
 |-------|--------|-------|
-| Kernel | ✅ canonical | Decision verification |
+| Kernel (QFixed) | ✅ canonical | Decision verification, end-to-end checked |
 | Numeric | ✅ canonical | Deterministic arithmetic only |
-| Control (theorems) | ⚠️ partial | Under stated assumptions |
+| Control (theorems over ℚ) | ⚠️ partial | Under stated assumptions |
 | Geometry | ✅ canonical | State embedding |
 | Continuum | ❌ excluded | PDE dynamics outside wedge |
 | Plasma physics | ❌ excluded | Full physics out of scope |
+
+**Note**: While the kernel operates over QFixed (fixed-point) and is computationally verified, the theorem layer operates over ℚ (rationals). The connection is narrow and intentional—the runtime verification does not depend on full C-4B mechanization—but is not a complete end-to-end theorem-sealed proof from ℚ→QFixed on the control layer.
 
 ---
 
@@ -138,7 +140,7 @@ The verifier checks in sequence:
 | 2 | `VgeomFus(params, nextState) > threshold` | THRESHOLD_EXCEEDED |
 | 3 | `defectDeclared > defectLimit` | DEFECT_OUT_OF_BOUNDS |
 
-**Boundary**: Open safe set (`>` rejects, `≤` accepts)
+**Boundary**: Strict exceedance rejects, equality accepts
 
 For the full contract, see [`docs/kernel_contract.md`](docs/kernel_contract.md).
 

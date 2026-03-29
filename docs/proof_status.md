@@ -176,7 +176,7 @@ The following are explicitly **not** within the proof scope:
 
 ## Control Theorem Status Detail
 
-**VDE Control Contract**: ⚠️ **PROVED** under one-step descent hypothesis
+**VDE Control Contract**: ⚠️ **CONDITIONAL** under one-step descent hypothesis
 
 The theorem states:
 

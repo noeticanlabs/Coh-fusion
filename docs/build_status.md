@@ -104,21 +104,6 @@ This document provides the canonical file-level inventory for the Coh-Fusion pro
 
 ---
 
-## Hard Blocker Summary
-
-### Proof Holes
-
-| File | Location | Issue |
-|------|----------|-------|
-| `src/CohFusion/Control/VDE_Quadratic.lean` | line 68 | `synthesized_control_contracts` uses `by sorry` |
-
-### Resolution
-
-- **Option A**: Complete the proof (requires substantial work)
-- **Option B**: Mark file as `draft` and remove from canonical build path
-
----
-
 ## Build Status Summary
 
 | Status | Count |

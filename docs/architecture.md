@@ -60,7 +60,7 @@ For full kernel scope, see [`docs/KERNEL_SCOPE.md`](docs/KERNEL_SCOPE.md).
 
 **Guarantees**:
 - Exact arithmetic (no floating-point)
-- Deterministic comparison (open safe set: `>` rejects, `≤` accepts)
+- Deterministic comparison (strict exceedance rejects, equality accepts)
 - Bounded operations (no overflow in kernel)
 - Exact decimal parsing
 

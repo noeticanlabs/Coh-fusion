@@ -45,17 +45,17 @@ A transition is **legal** if and only if **all** of the following predicates suc
 
 ## Boundary Policy
 
-### Threshold Semantics (Rule: Open Safe Set)
+### Threshold Semantics (Rule: Strict Exceedance Rejects)
 
 - **Rejection condition**: `VgeomFus(params, toStateFus(nextState)) > threshold`
 - **Acceptance condition**: `VgeomFus(params, toStateFus(nextState)) ≤ threshold`
-- **Rationale**: The safe set is **open** — equality at the threshold is accepted
+- **Rationale**: The accepted set is the **closed sublevel set** — equality at the threshold is accepted
 
-### Defect Semantics (Rule: Open Safe Set)
+### Defect Semantics (Rule: Strict Exceedance Rejects)
 
 - **Rejection condition**: `receipt.defectDeclared > defectLimit`
 - **Acceptance condition**: `receipt.defectDeclared ≤ defectLimit`
-- **Rationale**: The defect limit defines an open safe region
+- **Rationale**: The defect limit defines a closed sublevel set
 
 ### Spend/Affordability Semantics
 
@@ -79,13 +79,11 @@ A transition is **legal** if and only if **all** of the following predicates suc
 | Code | Meaning | Trigger |
 |------|---------|---------|
 | `unauthorizedTransition` | State linkage failure | `receipt.statePrev ≠ prevState` |
-| `thresholdExceeded` | Risk exceeded | `VgeomFus > threshold` |
+| `thresholdExceeded` | Risk exceeded | `V > threshold` |
 | `defectOutOfBounds` | Defect exceeded | `defectDeclared > defectLimit` |
-| `oplaxViolation` | Dissipative inequality violated | Oplax gate fails |
+| `oplaxViolation` | Dissipative inequality violated | `V(next) > V(prev) - (1-γ)·spend + defect` |
 | `schemaInvalid` | Malformed input | (reserved) |
 | `chainDigestMismatch` | Chain integrity failure | (reserved) |
-| `unaffordableBurn` | Authority insufficient | (legacy, use `oplaxViolation`) |
-| `unauthorizedTransition` | Certificate mismatch | (reserved) |
 
 ### Failure Ordering
 
@@ -104,8 +102,8 @@ The first failing gate determines the reject code.
 
 | Module | Ownership |
 |--------|-----------|
-| `Runtime/VerifierKernel.lean` | **Kernel** — owns final accept/reject decisions |
-| `Runtime/VerifierSemanticsQFixed.lean` | **Implementation** — concrete QFixed instantiation |
+| `Runtime/VerifierSemanticsQFixed.lean` | **Kernel** — owns final accept/reject decisions |
+| `Runtime/VerifierSemantics.lean` | **Generic template** — uses `≥` semantics, not canonical |
 | `Product/CommercialWedge.lean` | **Wrapper** — calls kernel |
 | `Control/BurnPolicyDemo.lean` | **Adapter** — input transformation only |
 | `Runtime/Bridge.lean` | **Wrapper** — trace verification, calls kernel |
