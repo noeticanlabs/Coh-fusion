@@ -1,0 +1,31 @@
+{
+  "vector_id": "vector_C",
+  "description": "Authority reject - certificate expired",
+  "input": {
+    "certificate": {
+      "certificate_id": "cert_expired001",
+      "hardware_id": "hw_sparc001",
+      "latency": 18446744073709551616,
+      "observation_error": 1844674407370955,
+      "slew_limit": 18446744073709551616000,
+      "saturation_limit": 9223372036854775800000,
+      "operating_regime_hash": "a1b2c3d4e5f6",
+      "calibration_epoch": "2026-01-15",
+      "expiry": "2025-12-31",
+      "root_of_trust": "sparc-root-001",
+      "signature": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6"
+    },
+    "state": {
+      "Z": 0,
+      "vZ": 0,
+      "I_act": 0,
+      "W": 0,
+      "vW": 0,
+      "I_cd": 0
+    }
+  },
+  "expected": {
+    "decision": "reject",
+    "reject_code": "CERT_EXPIRED"
+  }
+}

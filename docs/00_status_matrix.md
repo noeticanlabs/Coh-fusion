@@ -98,6 +98,7 @@ This document provides a snapshot of the current state of the Coh-Fusion project
 | Gap | Current State | Required Work |
 |-----|---------------|---------------|
 | C-4B proof | Not started | Formalize dissipation stability |
+| VDE_Quadratic sorry | In Progress | Replace `sorry` with actual proof |
 | C-2C proof | Not started | Formalize transversality measure |
 
 ### Medium Priority Gaps

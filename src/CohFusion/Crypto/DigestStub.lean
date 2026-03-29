@@ -1,5 +1,14 @@
 import CohFusion.Crypto.Digest
 
+/-!
+# STATUS: excluded from canonical build
+
+This file contains a development-only stub for cryptographic hashing.
+It is NOT valid for production chain integrity.
+
+See: docs/build_status.md for current classification.
+-/
+
 namespace CohFusion.Crypto
 
 /-- Non-cryptographic development stub. Never valid for production chain integrity. -/

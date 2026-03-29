@@ -50,7 +50,9 @@ def isStabilizing [Add α] [Sub α] [Mul α] [HPow α Nat α] [LT α] [LE α]
 /-- Current-drive law for tearing suppression.
     u_cd = sat(-K_W * W - K_vW * vW - K_I * I_cd)
     Opposes tearing width and growth. -/
-def synthesizeQuadratic [Add α] [Neg α] [Mul α] [LT α]
+def synthesizeQuadratic [Add α] [Neg α] [Mul α] [LT α] [LE α]
+    [DecidableRel (α := α) (· < ·)]
+    [DecidableRel (α := α) (· ≤ ·)]
     (g : TearControlGains α)
     (s : CohFusion.Geometry.Tearing.StateTear α) : α :=
   let u_raw := -(g.kW * s.W + g.kvW * s.vW + g.kI * s.I_cd)

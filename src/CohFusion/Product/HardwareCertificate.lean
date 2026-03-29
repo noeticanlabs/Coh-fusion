@@ -58,6 +58,11 @@ def hasValidSignatureFormat (cert : HardwareCertificate) : Bool :=
 def hasRootOfTrust (cert : HardwareCertificate) : Bool :=
   cert.root_of_trust.length > 0
 
+/-- Check if certificate operating regime matches expected regime hash.
+    This binds the certificate to a specific canonical profile configuration. -/
+def matchesRegime (cert : HardwareCertificate) (expectedRegimeHash : String) : Bool :=
+  cert.operating_regime_hash = expectedRegimeHash
+
 /-- Validate certificate and return either an error or validated certificate. -/
 def validateCertificate
     (today : String)

@@ -1,0 +1,35 @@
+{
+  "vector_id": "vector_B",
+  "description": "Hazard reject - threshold exceeded",
+  "input": {
+    "params": {
+      "omega1": 1,
+      "omega2": 1,
+      "omega3": 1,
+      "nu1": 1,
+      "nu2": 1,
+      "nu3": 1
+    },
+    "state": {
+      "Z": 0,
+      "vZ": 0,
+      "I_act": 0,
+      "W": 0,
+      "vW": 0,
+      "I_cd": 0
+    },
+    "receipt": {
+      "statePrev": {"Z": 0, "vZ": 0, "I_act": 0, "W": 0, "vW": 0, "I_cd": 0},
+      "stateNext": {"Z": 18446744073709551616, "vZ": 0, "I_act": 0, "W": 0, "vW": 0, "I_cd": 0},
+      "spendAuth": 0,
+      "defectDeclared": 0
+    },
+    "threshold": 0,
+    "defectLimit": 18446744073709551616,
+    "gamma": 0
+  },
+  "expected": {
+    "decision": "reject",
+    "reject_code": "thresholdExceeded"
+  }
+}
