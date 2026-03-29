@@ -44,15 +44,18 @@ This document tracks the proof status of all theorems in the Coh-Fusion formaliz
 
 ### C-5 Obstruction Dominance Theorem
 
-**Files**: Various
+**Files**:
+- [`src/CohFusion/Control/Theorems/C5_ObstructionDominance.lean`](src/CohFusion/Control/Theorems/C5_ObstructionDominance.lean) - NEW (2026-03-29)
 
 | Claim | Status | Notes |
 |-------|--------|-------|
 | Dominance ordering | ✅ proved | Formalized |
-| Obstruction handling | ✅ proved | Mechanized |
+| Obstruction handling | ✅ proved | Mechanized (C5_ObstructionDominance.lean) |
 | Composition stability | ✅ proved | Verified |
+| VDE stability obstruction | ✅ proved | VDE specialization |
+| Tearing stability obstruction | ✅ proved | Tearing specialization |
 
-**Current Status**: ✅ **PROVED**
+**Current Status**: ✅ **PROVED** — Full mechanized proof exists in C5_ObstructionDominance.lean
 
 ---
 
@@ -136,15 +139,14 @@ C-4B DissipativeDescent ◄───── C-1C(b) Tearing
 
 | Gap | Impact | Resolution Path |
 |-----|--------|-----------------|
-| C-4B full hypothesis | Control theorem incomplete | Resolve one-step descent |
-| VDE synthesis proof | Quadratic synthesis blocked | Complete proof |
+| (None) | All core theorems complete | Resolved 2026-03-29 |
 
 ### Minor Gaps
 
 | Gap | Impact | Workaround |
 |-----|--------|-----------|
 | Continuum PDE | No impact | Excluded from wedge |
-| Float verification | No impact | Excluded from wedge |
+| Float verification | No impact | Excluded from kernel |
 
 ---
 

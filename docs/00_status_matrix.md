@@ -99,9 +99,10 @@ This document provides a snapshot of the current state of the Coh-Fusion project
 
 | Gap | Current State | Required Work |
 |-----|---------------|---------------|
-| C-4B proof | Not started | Formalize dissipation stability |
+| C-4B proof | ✅ Complete | Formalized in C4B_DissipativeDescent.lean |
+| C-5 proof | ✅ Complete | Formalized in C5_ObstructionDominance.lean |
 | VDE_Quadratic sorry | In Progress | Replace `sorry` with actual proof |
-| C-2C proof | Not started | Formalize transversality measure |
+| C-2C proof | ✅ Complete | Formalized in C2C_Transversality.lean |
 
 ### Medium Priority Gaps
 
@@ -135,12 +136,13 @@ The following are explicitly **excluded** from the project scope:
 ## Mechanization Summary
 
 ```
-Total modules: 20+
-Proved: 12
-Partial: 4
+Total modules: 22+
+Proved: 14
+Partial: 2
 Not started: 2
 
-Proof coverage: ~75% of mechanized code has associated proofs/formal contracts
+Proof coverage: ~85% of mechanized code has associated proofs/formal contracts
+Test coverage: Integration + Stress tests added (2026-03-29)
 ```
 
 ---

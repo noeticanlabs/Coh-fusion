@@ -51,13 +51,13 @@ structure FusionReceipt (α : Type) where
   canonId       : Option String   -- Canon/certificate reference
   prevClaim     : Option Digest  -- Previous receipt claim (hash linking)
   nextClaim     : Option Digest  -- Next receipt claim (for chaining)
-  deriving Repr, DecidableEq
+  deriving DecidableEq
 
 /-- Create a FusionReceipt from a MicroReceipt.
 -/
 def FusionReceipt.ofMicroReceipt [Inhabited Digest] (schemaId : String) (version : Nat)
-    (micro : MicroReceipt α) : FusionReceipt α :=
-  { schemaId := schemaId
+    (micro : FusionReceipt α) :
+  FusionReceipt α where
     version := version
     statePrev := micro.statePrev
     stateNext := micro.stateNext
